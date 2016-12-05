@@ -1,0 +1,109 @@
+%---------------------------------------------------------------------
+%---------------------------------------------------------------------
+\chapter{Qt Creator for Fortran}
+%---------------------------------------------------------------------
+%---------------------------------------------------------------------
+
+Qt Creator is a integrated development environment, IDE, for C++ and Qt, but can be easily adapted as a development environment for Fortran using plugins provided together with this book.
+
+The user interface of Qt Creator resembles the one found in commercial alternatives such as Microsoft Visual Studio or Inte Visual Fortran. This chapter gives a short introduction on how to get started with this development enviroment.
+
+To be able to use the Fortran Project templates and compile Fortran code in Qt Creator, require the following pre-requisites:
+
+\begin{itemize}
+\item A working Fortran compiler available in the search path. On Windows this is best achieved by installing gfortran and related tools from the MinGW project. [FIX] Reference. On Mac OS X the gfortran compiler is available in the MacPorts distribution [FIX] Reference.
+\item CMake installed and available as a command line tools. CMake is available to download from XXX [FIX].
+\item Fortran Templates for Qt Creator which can be downloaded here. These templates work for all platforms. [FIX]
+\end{itemize}
+
+%---------------------------------------------------------------------
+\section{Starting Qt Creator}
+%---------------------------------------------------------------------
+
+Starting Qt Creator can be done from the Start-menu on Windows and from the application launcher on Mac OS X. When Qt Creator has been launched the main windows as shown in figure~\ref{fig:qtcreator_main_window}, is shown.
+
+\fignormal{qtcreator_main_window}{Qt Creator main window}{fig:qtcreator_main_window}
+
+On the left side of the window, 2 toolbars are shown. The top toolbar controls the main program modes of Qt Creator. The lower toolbar is the project build toolbar, which controls how the projects are built and run.
+
+\section{Qt Creator main program modes}
+
+There are 7 program modes in Qt Creator, controlling the workflow of the development environment. The different modes are listed below:
+
+\begin{itemize}
+\item Welcome mode - Shows a welcome screen, providing shortcuts for many of the common operations of the development environment.
+\item Edit mode - This is probarbly the most used mode of the development environment. This mode provides access to the files within a project as well as an source code editor supporting most languages.
+\item Design mode - In this mode user interfaces for Qt can be designed. This mode will not be used for Fortran development.
+\item Debug mode - This mode will be activated when the application is run in debug mode, for interactive debugging your Fortran application.
+\item Project mode - This mode provides access to settings that applies to the current project.
+\item Analyse mode - Provides access to profiling tools. This mode will not be used in this book.
+\item Help mode - Provides access to the online documenation provided by the development environment.
+\end{itemize}
+
+Switching between modes are in many cases done automatically. Debugging an application will automatically switch to debug mode. Creating or opening a project will automatically switch to edit mode.
+
+%---------------------------------------------------------------------
+\section{Installing highlighting rules for Fortran}
+%---------------------------------------------------------------------
+
+As Qt Creator is not by default used for Fortran development, highlighting rules for Fortran are not installed. Qt Creator has a built in mechanism for installing highlighting rules automatically. The mecahnism is reached from the the preferences dialog. In the preferences dialog, select the ''Text Editor'' section and then the ''Generic Highlighter'' tab. In this tab select ''Download Definitions...'' to show a dialog for selecting and downloading highlighting schemes for Qt Creator. Figure~\ref{fig:qt_fortran_highlight_3} and \ref{fig:qt_fortran_highlight_4} illustrates the process.
+
+\fignormal{qt_fortran_highlight_3}{Qt Creator main window}{fig:qt_fortran_highlight_3}
+\figsmall{qt_fortran_highlight_4}{Qt Creator main window}{fig:qt_fortran_highlight_4}
+
+%---------------------------------------------------------------------
+\section{Creating a Fortran project}
+%---------------------------------------------------------------------
+
+To use Qt Creator as a development environment for Fortran, a project has to be created. A project defines, which files that are required for building the program as well as any required settings. By default Qt Creator uses its own custom project format, but can also handle CMake based project, which is also what the installed Fortran plugins use. 
+
+To create a new project select \menuitem{File/New File or Project...} from the Qt Creator main menu. This brings up a dialog for selecting new files and projects. Select \menuitem{Non-Qt Project/Plain Fortran Project (CMAke Build)} as shown in the following figure:
+
+%\fignormal{qt_create_project_1}{Select project type}{fig:qt_create_project_1}
+\fignc{0.6\textwidth}{qt_create_project_1}
+
+In the next step the name and location of the project will be set, as in the following figure. All files for the project will be created in this directory.
+
+%\fignormal{qt_create_project_2}{Select project name and location}{fig:qt_create_project_2}
+\fignc{0.6\textwidth}{qt_create_project_2}
+
+As this project uses CMake, a build directory must be specified. This is done, so that the source directory remains clean from all files uses during the build. It is also possible to select a build directory within the source tree. 
+
+%\fignormal{qt_create_project_3}{Select build location}{fig:qt_create_project_3}
+\fignc{0.6\textwidth}{qt_create_project_3}
+
+In the next step of the guide CMake is run with any needed options. Click \button{Run CMake} to run the CMake configuration process. If not errors are encountered click \button{Done} to continue to the next step.
+
+%\fignormal{qt_create_project_4}{Select project type}{fig:qt_create_project_4}
+\fignc{0.6\textwidth}{qt_create_project_4}
+
+In the final step, Qt Creator creates the project files and displays the editor window with the resulting project files shown in the left pane as shown in the following figure:
+
+%\fignormal{qt_create_project_5}{Select project type}{fig:qt_create_project_5}
+\fignc{0.8\textwidth}{qt_create_project_5}
+
+%\subsection{Adding a new source file}
+%---------------------------------------------------------------------
+\subsection{Building the project}
+%---------------------------------------------------------------------
+
+Building the project is done either by selecting \menuitem{Build/Build All} or \menuitem{Build/Build [Projectname]}. It is also possible to use the "Hammer" button in the bottom left of the window, to initiate the build. 
+
+To see the results of the build the button \menuitem{Compile Output} can be clicked. This brings up a pane showing the compilation output as shown below:
+
+\fignc{0.6\textwidth}{qt_creator_compile_pane}
+
+The compile output pane will also show any errors during the build as in the following output:
+
+\fignc{0.6\textwidth}{qt_creator_compile_error}
+
+%---------------------------------------------------------------------
+\subsection{Running the project}
+%---------------------------------------------------------------------
+
+Running the finished application can be done by selecting \menuitem{Build/Run}. This will run the first target in the project. If the CMakeLists.txt file contains more targets (add\_executable), the selected executable to run can be selected by clicking on the ''Terminal'' icon in the lower left toolbar. This brings up a menu in which you can select the target to run as shown in the following figure:
+
+\fignc{0.5\textwidth}{qt_creator_select_run_target}
+
+
+

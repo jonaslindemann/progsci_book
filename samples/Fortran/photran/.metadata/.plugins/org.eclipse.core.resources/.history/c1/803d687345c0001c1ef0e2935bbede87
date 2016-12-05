@@ -1,0 +1,30 @@
+program case_sample
+
+	integer :: value
+	
+	write(*,*) "Enter a value"
+	flush(6)
+	read(*,*) value
+	
+	select case (value)
+		case (:0)
+			print *, "Större än ett."
+		case (1)
+			print *, "Nummer ett!"
+		case (2:9)
+			print *, "Mellan 2 och 9."
+		case (10)
+			print *, "Nummer 10!"
+		case (11:41)
+			print *, "Mindre än 42 men större än 10."
+		case (42)
+			print *, "Meningen med livet eller kanske 6*7."
+		case (43:)
+			print *, "Större än 42."
+		case default
+			print *, "Detta skall aldrig inträffa!"
+	end select
+
+	stop
+
+end program case_sample

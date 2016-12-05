@@ -1,0 +1,393 @@
+\documentclass[b5paper,twoside,11pt]{book}
+%\documentclass[a4paper,twoside,12pt]{book}
+\usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{ae}
+\usepackage{hyperref}
+\usepackage{palatino}
+\usepackage{MnSymbol}
+\usepackage{pifont}
+%\usepackage{bookman}
+%\usepackage{times}
+
+\usepackage{tikz}
+\usepackage{bbding}
+\usepackage{ascii}
+
+\hypersetup{
+    bookmarks=true,         % show bookmarks bar?
+    unicode=false,          % non-Latin characters in Acrobat’s bookmarks
+    pdftoolbar=true,        % show Acrobat’s toolbar?
+    pdfmenubar=true,        % show Acrobat’s menu?
+    pdffitwindow=true,     % window fit to page when opened
+    pdfstartview={FitH},    % fits the width of the page to the window
+    pdftitle={Modern Fortran in Science and Technology},    % title
+    pdfauthor={Jonas Lindemann and Ola Dahlblom},     % author
+    pdfsubject={Programming},   % subject of the document
+    pdfcreator={Jonas Lindemann},   % creator of the document
+    pdfproducer={Jonas Lindemann}, % producer of the document
+    pdfkeywords={Programming} {Fortran} {Multilanguage-programming}, % list of keywords
+    pdfnewwindow=true,      % links in new window
+    colorlinks=true,       % false: boxed links; true: colored links
+    linkcolor=red,          % color of internal links
+    citecolor=green,        % color of links to bibliography
+    filecolor=magenta,      % color of file links
+    urlcolor=cyan           % color of external links
+}
+
+% ---------------------------------------------------------
+% ---- Layoutinställningar
+% ---------------------------------------------------------
+
+%\renewcommand*\rmdefault{ppl}
+\renewcommand*\sfdefault{cmss}
+
+\definecolor{light-gray}{gray}{0.95}
+
+% B5 bredd = 182mm hjd = 257mm
+
+\usepackage[inner=20mm,text={130mm,210mm}]{geometry}
+%\usepackage[cam,a4,center]{crop}
+
+\pagestyle{fancy}
+\fancyhead[LE,RO]{\textsl{\rightmark}}
+\fancyhead[LO,RE]{\textsl{\leftmark}}
+\fancyfoot[C]{\textsf{\thepage}}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}}
+\setlength{\headwidth}{130mm}
+%\setlength{\headwidth}{160mm}
+
+\addtolength{\parskip}{3pt}%
+
+\usepackage[english]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[latin1]{inputenc}
+	
+\definecolor{mycolor}{rgb}{0.9,0.9,0.9}
+\newcommand{\greybox}{\textcolor{mycolor}{\rule{\linewidth}{\baselineskip}}\vspace{-1.25\baselineskip}}
+
+% ---------------------------------------------------------
+% ---- Globala inställningar kodstorlek
+% ---------------------------------------------------------
+
+\usepackage[scaled=.8]{beramono}
+\newcommand{\spcodesize}{\scriptsize}
+%\newcommand{\spcodesize}{\footnotesize}
+%\newcommand{\spcodesize}{\small}
+
+% ---------------------------------------------------------
+% ---- Nyckelord fr Fortran
+% ---------------------------------------------------------
+
+\newcommand{\fkeyw}[1]{\textsf{#1}}
+\newcommand{\foper}[1]{\textsf{#1}}
+\newcommand{\fvar}[1]{\textsf{#1}}
+\newcommand{\fvarname}[1]{\textsf{#1}}
+\newcommand{\fmodule}[1]{\textsf{#1}}
+\newcommand{\fname}[1]{\textsf{#1}}
+\newcommand{\ftype}[1]{\textsf{#1}}
+\newcommand{\fmethod}[1]{\textsf{#1}}
+\newcommand{\fexpr}[1]{\textit{\textsf{#1}}}
+\newcommand{\ftab}{\hspace{5mm}}
+\newcommand{\ffname}[1]{\texttt{#1}}
+\newcommand{\fsol}[1]{\textsf{#1}}
+
+\newcommand\hlbox[2][]{\tikz[overlay]\node[fill=blue!20,inner sep=2pt, anchor=text, rectangle, rounded corners=1mm,#1] {#2};\phantom{#2}}
+\newcommand{\hladded}{\scriptsize{\PencilLeftDown~\textsl{Added}}}
+
+% ---------------------------------------------------------
+% ---- Syntaxhantering i Fortran
+% ---------------------------------------------------------
+
+\newenvironment{fsyntax}
+{\vspace{-6mm}\begin{quotation}\begin{sffamily}\begin{slshape}\noindent\flushleft}
+{\end{slshape}\end{sffamily}\end{quotation}}
+
+% prebreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\rcurvearrowse\space}}
+
+\newcommand{\fmode}{\lstset{language=[08]Fortran,basicstyle=\sffamily \spcodesize,
+    xleftmargin=10mm,xrightmargin=7mm,aboveskip=5mm,belowskip=5mm,
+    tabsize=4,showspaces=false,otherkeywords={forall},breaklines=true,
+    extendedchars=true,framerule=0pt,frame=single,backgroundcolor=\color{light-gray},
+    prebreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\lcurvearrowse\space}},
+    postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\rcurvearrowse\space}},
+    escapeinside={<*}{*>}
+    }}
+
+\newcommand{\fmodesrc}{\lstset{language=Fortran,basicstyle=\sffamily \small,
+tabsize=4,showspaces=false,xleftmargin=0mm,breaklines=true,otherkeywords={forall},resetmargins=true,extendedchars=true}}
+
+
+% ---------------------------------------------------------
+% ---- Nyckelord fr Python
+% ---------------------------------------------------------
+
+\newcommand{\pykeyw}[1]{\textsf{#1}}
+\newcommand{\pyoper}[1]{\textsf{#1}}
+\newcommand{\pyvar}[1]{\textsf{#1}}
+\newcommand{\pyvarname}[1]{\textsf{#1}}
+\newcommand{\pymodule}[1]{\textsf{#1}}
+\newcommand{\pyname}[1]{\textsf{#1}}
+\newcommand{\pytype}[1]{\textsf{#1}}
+\newcommand{\pymethod}[1]{\textsf{#1}}
+\newcommand{\pyexpr}[1]{\textit{\textsf{#1}}}
+\newcommand{\pytab}{\hspace{5mm}}
+\newcommand{\pyfname}[1]{\texttt{#1}}
+\newcommand{\pysol}[1]{\textsf{#1}}
+
+\newenvironment{pysyntax}
+{\vspace{-6mm}\begin{quotation}\begin{sffamily}\begin{slshape}\noindent\flushleft}
+{\end{slshape}\end{sffamily}\end{quotation}}
+
+\newcommand{\pymode}{\lstset{language=Python,basicstyle=\sffamily \spcodesize,
+    xleftmargin=10mm,xrightmargin=7mm,aboveskip=5mm,belowskip=5mm,
+    tabsize=4,showspaces=false,breaklines=true,
+    extendedchars=true}}
+    
+% ---------------------------------------------------------
+% ---- Nyckelord fr C
+% ---------------------------------------------------------
+
+\newcommand{\ckeyw}[1]{\textsf{#1}}
+\newcommand{\coper}[1]{\textsf{#1}}
+\newcommand{\cvar}[1]{\textsf{#1}}
+\newcommand{\cvarname}[1]{\textsf{#1}}
+\newcommand{\cmodule}[1]{\textsf{#1}}
+\newcommand{\cname}[1]{\textsf{#1}}
+\newcommand{\ctype}[1]{\textsf{#1}}
+\newcommand{\cmethod}[1]{\textsf{#1}}
+\newcommand{\cexpr}[1]{\textit{\textsf{#1}}}
+\newcommand{\ctab}{\hspace{5mm}}
+\newcommand{\cfname}[1]{\texttt{#1}}
+\newcommand{\csol}[1]{\textsf{#1}}
+
+\newcommand{\cmode}{\lstset{language=C,basicstyle=\sffamily \spcodesize,
+    xleftmargin=10mm,xrightmargin=7mm,aboveskip=5mm,belowskip=5mm,
+    tabsize=4,showspaces=false,breaklines=true,
+    extendedchars=true}}
+    
+
+% ---------------------------------------------------------
+% ---- Nyckelord fr Object Pascal
+% ---------------------------------------------------------
+
+\newcommand{\pkeyw}[1]{\textsf{#1}}
+\newcommand{\poper}[1]{\textsf{#1}}
+\newcommand{\pvar}[1]{\textsf{#1}}
+\newcommand{\pvarname}[1]{\textsf{#1}}
+\newcommand{\pname}[1]{\textsf{#1}}
+\newcommand{\punit}[1]{\textsf{#1}}
+\newcommand{\ptype}[1]{\textsf{#1}}
+\newcommand{\pprop}[1]{\textsf{#1}}
+\newcommand{\pexpr}[1]{\textit{\textsf{#1}}}
+\newcommand{\ptab}{\hspace{5mm}}
+\newcommand{\pfname}[1]{\texttt{#1}}
+\newcommand{\pmethod}[1]{\textsf{#1}}
+\newcommand{\pobject}[1]{\textsf{#1}}
+\newcommand{\psol}[1]{\textsf{#1}}
+
+% ---------------------------------------------------------
+% ---- Syntaxhantering i Object Pascal
+% ---------------------------------------------------------
+
+\newenvironment{psyntax}
+{\vspace{-6mm}\begin{quotation}\begin{sffamily}\begin{slshape}\noindent\flushleft}
+{\end{slshape}\end{sffamily}\end{quotation}}
+
+\newcommand{\pmode}{\lstset{language=Delphi,basicstyle=\sffamily \spcodesize,
+    xleftmargin=10mm,xrightmargin=7mm,aboveskip=5mm,belowskip=5mm,
+    tabsize=4,showspaces=false,breaklines=true,extendedchars=true}}
+
+\newcommand{\pmodesrc}{\lstset{language=Delphi,basicstyle=\sffamily \footnotesize,
+    tabsize=4,showspaces=false,xleftmargin=0mm,breaklines=true,extendedchars=true}}
+
+% ---------------------------------------------------------
+% ---- Speciella definitioner fr GUI
+% ---------------------------------------------------------
+
+\newcommand{\menuitem}[1]{\textsf{\textbf{#1}}}
+\newcommand{\keyb}[1]{\textsf{\textbf{#1}}}
+\newcommand{\button}[1]{\textsf{\textbf{#1}}}
+\newcommand{\guitab}[1]{\textsf{\textbf{#1}}}
+\newcommand{\guicontrol}[1]{\textsf{\textbf{#1}}}
+
+\newcommand{\pbox}{\rule{1.5mm}{1.5mm}}
+
+% ---------------------------------------------------------
+% ---- Makefile syntax
+% ---------------------------------------------------------
+
+\newenvironment{msyntax}
+{\vspace{-6mm}\begin{quotation}\begin{sffamily}\begin{slshape}\noindent\flushleft}
+{\end{slshape}\end{sffamily}\end{quotation}}
+
+\newcommand{\mmode}{\lstset{language=make,basicstyle=\sffamily \spcodesize,xleftmargin=10mm,xrightmargin=7mm,aboveskip=5mm,belowskip=5mm,tabsize=4,showspaces=false,showtabs=true,breaklines=true,extendedchars=true,frame=none}}
+
+\newcommand{\mvar}[1]{\textsf{#1}}
+\newcommand{\mfname}[1]{\textsf{#1}}
+\newcommand{\mfunc}[1]{\textsf{#1}}
+
+% ---------------------------------------------------------
+% ---- CMake syntax
+% ---------------------------------------------------------
+
+\newenvironment{cmsyntax}
+{\vspace{-6mm}\begin{quotation}\begin{sffamily}\begin{slshape}\noindent\flushleft}
+{\end{slshape}\end{sffamily}\end{quotation}}
+
+\newcommand{\cmmode}{\lstset{language=Clean,basicstyle=\sffamily \spcodesize,xleftmargin=10mm,xrightmargin=7mm,aboveskip=5mm,belowskip=5mm,tabsize=4,showspaces=false,showtabs=false,breaklines=true,extendedchars=true,frame=none}}
+
+\newcommand{\cmvar}[1]{\textsf{#1}}
+\newcommand{\cmfname}[1]{\textsf{#1}}
+\newcommand{\cmfunc}[1]{\textsf{#1}}
+
+% ---------------------------------------------------------
+% ---- Command line
+% ---------------------------------------------------------
+
+\newcommand{\cmdmode}{\lstset{language=Clean,basicstyle=\footnotesize\ttfamily,xleftmargin=10mm,xrightmargin=7mm,aboveskip=5mm,belowskip=5mm,tabsize=4,showspaces=false,showtabs=false,breaklines=true,extendedchars=true,frame=tblr}}
+
+\newcommand{\cli}[1]{\texttt{#1}}
+
+% ---------------------------------------------------------
+% ---- Figurdefinitioner
+% ---------------------------------------------------------
+
+\newcommand{\fig}[4]{
+%\vspace{-2em}
+\begin{figure}[!htb]%
+\begin{center}%
+\includegraphics[width=#1]{./images/#2}%
+\end{center}%
+\caption{#3} \label{#4}
+\end{figure}
+}
+
+\newcommand{\figsimple}[1]{\includegraphics{./images/#1}}
+\newcommand{\figsimplesize}[2]{\includegraphics[width=#1]{./images/#2}}
+\newcommand{\figinline}[1]{\begin{center}\includegraphics[width=0.7\textwidth]{./images/#1}\end{center}}
+\newcommand{\figinlinesize}[2]{\begin{center}\includegraphics[width=#1]{./images/#2}\end{center}}
+\newcommand{\figbutton}[1]{\includegraphics[width=5mm, height=5mm]{./images/#1}}
+
+\newcommand{\fignc}[3]{
+%\begin{figure}[!ht]%
+\begin{center}%
+\includegraphics[width=#1]{./images/#2}%
+\end{center}%
+%\end{figure}
+}
+
+\newcommand{\fignormal}[3]{
+\fig{0.7\textwidth}{#1}{#2}{#3}
+}
+
+\newcommand{\fignormalnc}[1]{
+\fignc{0.7\textwidth}{#1}{}
+}
+
+\newcommand{\figmedium}[3]{
+\fig{0.5\textwidth}{#1}{#2}{#3} }
+
+\newcommand{\figmediumnc}[1]{
+\fignc{0.5\textwidth}{#1}{}
+}
+
+\newcommand{\figsmall}[3]{
+\fig{0.4\textwidth}{#1}{#2}{#3} }
+
+\newcommand{\figsmallnc}[1]{
+\fignc{0.4\textwidth}{#1}{}
+}
+
+\newcommand{\figtiny}[3]{
+\fig{0.2\textwidth}{#1}{#2}{#3} }
+
+\newcommand{\figtinync}[1]{
+\fignc{0.2\textwidth}{#1}{} }
+
+\newcommand{\figfull}[3]{
+\fig{1.0\textwidth}{#1}{#2}{#3}
+}
+
+\newcommand{\figfullnc}[1]{
+\fignc{1.0\textwidth}{#1}{} }
+
+% ---------------------------------------------------------
+% ---- Speciella listor
+% ---------------------------------------------------------
+
+\newenvironment{xlist}{\begin{list}{-}{\itemsep -2mm}}{\end{list}}
+\newenvironment{xlist2}{\begin{list}{}{\itemsep -2mm}}{\end{list}}
+
+\newcounter{Mycount}
+
+\title{\textbf{Modern Fortran in Science and Technology}}
+\author{Jonas Lindemann och Ola Dahlblom}
+
+% ---------------------------------------------------------
+% ---------------------------------------------------------
+% ---- Huvuddokument
+% ---------------------------------------------------------
+% ---------------------------------------------------------
+
+
+\begin{document}
+
+\maketitle
+
+\frontmatter
+
+\tableofcontents%
+\listoffigures%
+%\listoftables%
+
+\mainmatter
+
+\include{chapter_introduction}
+
+\fmode
+
+\include{chapter_fortran}
+%\include{chapter_fortran_cpp}
+%\include{chapter_fortran_parallel}
+\include{chapter_fortran_python}
+
+\include{chapter_fortran_projects}
+\include{section_fortran_make}
+\include{section_fortran_cmake}
+\include{section_fortran_documentation}
+\include{chapter_photran}
+\include{chapter_qtcreator}
+
+%\chapter{Development tools}
+%\section{Build management}
+%\chapter{Fortran and Python}
+%\chapter{Fortran and C/C++}
+%\include{chapter_opengl2d}
+%\include{chapter_absoft}
+%\include{chapter_vf}
+
+\pmode
+
+%\include{chapter_objectpascal}
+%\include{chapter_delphi}
+%\include{chapter_dll}
+%\include{chapter_wizard}
+%\include{chapter_application}
+
+\include{chapter_references}
+
+\appendix
+
+\include{app_compiling_fortran}
+\include{app_exercises}
+%\include{app_solutions}
+
+%\include{app_application_source}
+
+\backmatter
+
+\end{document}

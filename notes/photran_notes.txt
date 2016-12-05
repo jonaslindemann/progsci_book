@@ -1,0 +1,77 @@
+Creating a Photran Makefile project
+-----------------------------------
+
+1. Start Photran IDE from the Start menu Start/Fortra Python Software Pack/Photran IDE
+2. Select Workspace
+3. Close the Welcome Screen.
+4. Choose File/New/Other...
+6. Select a Fortran/Fortran Project
+7. Click Next...
+8. Enter a project name 
+8.1 Uncheck the "Show project types and toolchains only if they are supported on the platform.
+8.2 Select "Makefile project" Project type.
+8.3 Select "MinGW GCC" / "GCC Toolchain"
+9. Click Next.
+10. Click on the "Advanced settings..." button
+11. Open "Fortran Build"
+11.1 Select Settings.
+11.2 On Windows the "PE Windows Parser" should be checked. On Linux the Elf Parser should be checked.
+11.3 Select "Error Parsers"
+11.4 On check the "Photran Error Parser for G95 Fortran".
+11.5 Klick OK
+12. Click Finish.
+13. Click yes to switch to Fortran perspective.
+
+Adding a new source file
+------------------------
+
+1. Select File/New/Other in the menu.
+2. Open "Fortran" and select Source file.
+3. Click Next.
+4. Type a filename for the new source file (test.f90)
+5. Click Finish.
+
+Creating a Makefile for the project
+-----------------------------------
+
+1. From the start menu select Start/Fortran Python Software Pack/Fortran Makefile Generator
+2. Use the "..." button to browse for the directory in the workspace where the source file was saved.
+3. Click Generate.
+4. Right click on the project folder and select "Refresh". The Makefile should now appear in the project tree.
+
+Adding make targets
+-------------------
+
+1. Click on the "Make Targets" tab in the right pane. 
+2. Right click on the project folder and select "Add Make Target".
+3. Set the target name to "all" and the make target to "all".
+4. Click "Create"
+
+Building project
+----------------
+
+1. Select Project/Build project from the menu
+
+Disabling automatic rebuild
+---------------------------
+
+1. Uncheck "Project/Build automatically"
+
+Running project
+---------------
+
+Defining a run configuration
+
+1. Select Run/Run from the menu or Ctrl-F11.
+2. Select "MinGW gdb" from the menu.
+
+After the initial selection this menu will not appear any more. 
+
+Cleaning a project
+------------------
+
+1. Select "Project/Clean..." from the menu.
+2. Uncheck "Start build immediately" to prevent the IDE rebuilding the project.
+
+
+

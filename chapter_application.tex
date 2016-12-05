@@ -1,0 +1,1507 @@
+%---------------------------------------------------------------------
+%---------------------------------------------------------------------
+\chapter{Tillämpningsexempel: Kontinuerlig balk} \label{ch:application}
+%---------------------------------------------------------------------
+%---------------------------------------------------------------------
+
+\fmode
+
+För att belysa den kompletta processen att koppla beräkningskod
+skriven i Fortran till ett användargränssnitt utvecklat i Delphi,
+kommer utvecklingsprocessen för ett beräkningsprogram för
+kontinuerliga balkar att beskrivas. Alla steg kommer ej att gås
+igenom, för detaljinstruktioner hänvisas till tidigare kapitel.
+Den kompletta källkoden för programmet återfinns i
+bilaga~\ref{app:application_source}
+
+%---------------------------------------------------------------------
+\section{Beräkningsdel (Fortran)}
+%---------------------------------------------------------------------
+
+Beräkningsdelen implementeras som ett dynamiskt länk bibliotek
+(DLL) enligt Kapitel 6. Kommunikationen mellan beräkningsdelen och
+användargränssnittet sker genom en huvudsubrutin \textit{calc}.
+Indata och utdata från beräkningsdelen skickas genom ett antal
+parametrar i \textit{calc} rutinen. Överföringen till dessa sker
+genom referens, dvs det anropande programmet allokerar indata- och
+utdata-variabler och för över dessa till beräkningsdelen som
+referenser. Beräkningsdelen manipulerar direkt dessa variabler
+utan onödigt kopierande mellan programdelarna. Figur 8{\-}1
+illustrerar relationerna mellan de olika delarna i det färdiga
+programmet.
+
+\fignormal{kompendiumv4Fig181.eps}{Relationer mellan
+programdelar}{fig:components}
+
+För att beräkningen av den kontinuerliga balken skall kunna
+genomföras behövs ett antal underrutiner:
+
+\begin{xlist}
+\item Elementrutin för att skapa elementstyvhetsmatris och
+elementlastvektor, \fmethod{beam2e} %
+\item Assembleringsrutin, \fmethod{assemElementLoad}%
+\item Lösningsrutiner, \fmethod{solveq} och \fmethod{solve}%
+\item Rutin för beräkning av deformationer och snittkrafter längs
+balken, \fmethod{beam2s}
+\end{xlist}
+
+Rutinerna ovan placeras i en separat Fortranmodul kallad
+\fmodule{beam}. I denna läggs också eventuella deklarationer, som
+behövs i hela beräkningsdelen.
+
+%---------------------------------------------------------------------
+\subsection{Modulen beam}
+%---------------------------------------------------------------------
+
+För att huvudrutinen skall vara lätt att överblicka och modifiera
+har alla nödvändiga rutiner för beräkning av den kontinuerliga
+balken placerats i en egen modul med namnet \fmodule{beam}.
+Modulen är uppbyggd enligt följande:
+
+\begin{lstlisting}[texcl]
+module beam
+
+    ! Precision på flyttal
+
+    integer, parameter :: ap=selected_real_kind(15,300)
+
+contains
+
+    subroutine beam2e(...)
+    .
+    .
+    end subroutine beam2e
+
+    subroutine beam2s(...)
+    .
+    .
+    end subroutine beam2s
+
+    subroutine solveq(...)
+    .
+    .
+    end subroutine solveq
+
+    subroutine solve(...)
+    .
+    .
+    end subroutine solve
+
+end module beam
+\end{lstlisting}
+
+Konstanten \fvar{ap} som deklareras i början av modulen är
+tillgänglig för alla rutiner och program som använder modulen.
+Detta gör det också lätt för huvudrutinen \fmethod{calc} att
+deklarera korrekt flyttalstyp för användning mot modulen
+\fmodule{beam}.
+
+Elementet som används i programmet är en enkel Bernoulli-balk
+hämtad från [9]. Geometri och frihetsgrader visas i
+figur~\ref{fig:beam_type}.
+
+\figmedium{kompendiumv4Fig182.eps}{Enkel
+Bernoulli-balk}{fig:beam_type}
+
+På grund av att balkens frihetsgrader sammanfaller med det globala
+systemet kan elementets styvhetsmatris sättas upp direkt utan
+några transformationer. Elementet är implementerat i rutinen
+\fmethod{beam2e} vilken tar längd \fvar{L}, last \fvar{q} och
+elasticitetsmodulen \fvar{E} och tvärsnittsegenskaperna \fvar{I}
+och \fvar{A} som indata. Utdata är styvhetsmatrisen \fvar{Ke}
+[4x4] och elementlastvektorn \fvar{fe} [4x1]. Rutinen har följande
+syntax.
+
+\begin{fsyntax}
+\textbf{call} beam2e(L,q,E,A,I,Ke,fe)
+\end{fsyntax}
+
+Assemblering görs med rutinen \fmethod{assemElementLoad}. Denna
+rutin assemblerar in godtycklig elementstyvhetsmatris \fvar{Ke}
+och elementkraftvektor \fvar{fe} in den globala styvhetsmatrisen
+utifrån topologivektorn \fvar{Edof}. Syntaxen är följande:
+
+\begin{fsyntax}
+\textbf{call} assemElementLoad(Edof,K,Ke,f,fe)
+\end{fsyntax}
+
+Lösning av ekvationssystemet sker med hjälp av rutinen
+\fmethod{solveq}. Denna rutin är egentligen en inkapsling av en
+annan lösningsrutin \fmethod{solve}, för anpassning till samma
+konvention för indata som används i CALFEM [11]. Syntaxen för
+\fmethod{solveq} är:
+
+\begin{fsyntax}
+\textbf{call} solveq(K, f, bcPrescr, bcValue, a, Q)
+\end{fsyntax}
+
+Indata till rutinen är den globala styvhetsmatrisen \fvar{K}, den
+globala lastvektorn \fvar{f}, heltalsvektorn \fvar{bcPrescr}, med
+ettor på de frihetsgrader som skall vara föreskrivna och nollor i
+övrigt, och vektorn \fvar{bcValue} med de föreskrivna värdena.
+Utdata är den globala förskjutningsvektorn \fvar{a} och
+reaktionsvektorn \fvar{Q}.
+
+När lösningen av ekvationssystemet är slutförd beräknas
+elementkrafterna med rutinen \fmethod{beam2s}. Rutinen har
+följande syntax:
+
+\begin{fsyntax}
+call beam2s(L, q, E, A, I, Ed, np, ShearForces, Moments, \&
+Deflections)
+\end{fsyntax}
+
+Parametrarna \fvar{L}, \fvar{E}, \fvar{A}, \fvar{I} och \fvar{q}
+har beskrivits ovan. \fvar{Ed} innehåller de lokala
+elementförskjutningarna. Antalet beräkningspunkter inklusive start
+och slutnod anges med \fvar{np}. Utdata från rutinen lagras i
+vektorerna \fvar{ShearForces}, \fvar{Moments}
+och \fvar{Deflections}. \\
+
+%---------------------------------------------------------------------
+\subsection{Huvudrutinen calc}
+%---------------------------------------------------------------------
+
+Rutinen \fmethod{calc} kan man kalla för beräkningsdelens
+huvudrutin. Det är denna rutin som kommer att anropas av
+huvudprogrammet. När en huvudrutin av denna typ skall definieras
+är det viktigt att tänka igenom vilka indata- och utdatavariabler
+som skall föras över i anropet. Det är också viktigt att se till
+att datatyperna stämmer överens med huvudprogrammets datatyper.
+Indatavariablerna för detta fall visas i
+tabell~\ref{tbl:input_variables_calc}.
+
+\begin{table}[!htb]
+\begin{center}
+\begin{tabular}{|l|p{0.5\textwidth}|}
+\hline
+Variabel &  Beskrivning \\
+\hline
+\ftype{integer(4) :: nBeams}  &   Antalet balkar \\
+\ftype{integer(4) :: nMaterials}  &  Antalet definierade material \\
+\ftype{real(8) :: BeamLengths(*)} &  Vektor innehållande längderna för de ingående balkdelarna. Antalet element måste vara minst nBeams. \\
+\ftype{real(8) :: BeamLoads(*)} & Vektor innehållande de utbredda lasterna för de ingående balkdelarna. Antalet element måste vara  minst nBeams. \\
+\ftype{integer(4) :: BeamProps(*)} & Heltalsvektor innehållande materialkoder för ingående balkdelar. Antalet element måste vara minst nBeams. \\
+\ftype{integer(4) :: BCTypes(*)} &  Heltalsvektor innehållande randvillkorstyper för de ingående noderna. \\
+ & \\
+ & Randvillkorstyperna är: \\
+ & 0 = Inget föreskrivet randvillkor \\
+ & 1 = Föreskrivet värde rotation \\
+ & 2 = Föreskrivet värde förskjutning \\
+ & 3 = Föreskrivet värde rotation och förskjutning \\
+ & \\
+\ftype{real(8) :: BCDisplValues(*)} & Föreskrivna förskjutningsvärden för de ingående noderna. Antalet element måste vara minst nBeams+1. \\
+\ftype{real(8) :: BCRotValues(*)} &  Föreskrivna rotationsvärden för de ingående noderna. Måste vara minst nBeams+1 element. \\
+\ftype{real(8) :: Materials(3,*)} &  Matris innehållande material- och tvärsnittsegenskaper. Varje kolumn lagrar E, A, I värden. Antalet element måste vara minst nMaterials. \\
+\ftype{integer(4) :: EvaluationPoints} &  Antalet beräkningspunkter på balkdelarna \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Indatavariabler för calc} \label{tbl:input_variables_calc}
+\end{table}
+
+Utdatavariablerna i \fmethod{calc} är de resultat som skall
+returneras till huvudprogrammet. I detta fallet skall
+deformationer, moment, tvärkrafter, globala förskjutningar och
+reaktionskrafter returneras. Variablerna visas i
+tabell~\ref{tbl:output_variables_calc}.
+
+\begin{table}[!htb]
+\begin{center}
+\begin{tabular}{|l|p{0.5\textwidth}|}
+\hline
+Variabel &  Beskrivning \\
+\hline
+\ftype{real(8) :: Displacements} &   Vektor med globala förskjutningar. Antalet element måste vara minst $(nBeams+1)*2$. \\
+\ftype{real(8) :: Reactions} &  Vektor med globala reaktionskrafter. Antalet element måste vara minst $(nBeams+1)*2$. \\
+\ftype{real(8) :: Moments(EvaluationPoints,*)} & Moment längs balksegment. Varje kolumn representerar ett balksegment. Antalet kolumner måste vara minst nBeams. \\
+\ftype{real(8) :: ShearForces(EvaluationPoints,*)} & Tvärkrafter längs balksegment. Varje kolumn representerar ett balksegment. Antalet kolumner måste vara minst nBeams. \\
+\ftype{real(8) :: Deflections(EvaluationPoints,*)} & Deformationer längs balksegment. Varje kolumn representerar ett balksegment. Antalet kolumner måste vara minst nBeams. \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Utdatavariabler för calc} \label{tbl:output_variables_calc}
+\end{table}
+
+I ovanstående deklarationer anges inte flyttalsnogrannheten med
+den fördefinierade konstanten \fvar{ap}. Detta beror på att
+datatyperna mellan beräkningsdelen och huvudprogrammet måste
+stämma överrens. Skulle konstanten \fvar{ap} variera kan man inte
+vara säker på att det är samma typ av variabler i huvudprogram och
+beräkningsdel. I huvudprogrammet används datatyperna
+\ftype{double} och \ftype{integer} vilket i Visual Fortran
+motsvaras av \ftype{real(8)} och \ftype{integer(4)}.
+
+\newpage
+För att rutinen \fmethod{calc} skall kunna nås från ett
+huvudprogram måste speciella instruktioner läggas in för att
+kompilatorn skall lägga in dem på rätt sätt i det dynamiskt
+länkade biblioteket (DLL). De första instruktionerna som läggs in
+är att rutinen skall exporteras (\fkeyw{dllexport)} och att
+anropskonventionen skall vara av typen \fkeyw{stdcall}. Denna
+anropskonvention är den som fungerar bäst tillsammans med Borland
+Delphi. Instruktioner av denna typ läggs alltid precis efter
+subrutin-deklarationen på följande sätt:
+
+\begin{lstlisting}[texcl]
+subroutine calc(nBeams, nMaterials, BeamLengths, &
+    BeamLoads, BeamProps, &
+    BCTypes, BCDisplValues, BCRotValues,&
+    Materials, Displacement, Reaction, &
+    EvaluationPoints, ShearForces, Moments,&
+    Deflections)
+
+    !dec\$attributes dllexport, stdcall :: calc
+    .
+    .
+\end{lstlisting}
+
+På grund av att det inte finns någon klar standard över hur
+indata- och utdatavariabler skall skickas mellan program skrivna i
+olika språk måste detta också specificeras. Det finns två
+huvudsakliga sätt att skicka variabler mellan program, som
+referens eller som värden. När en variabel skickas som referens
+skickas inte innehållet i variabeln till underprogrammet, utan den
+variabel som underprogrammet tar emot motsvaras av en variabel i
+huvudprogrammet. Skickas variabler som värden, kopieras innehållet
+i variabeln till en ny variabel som förs över i anropet. Figur
+8{\-}3 visar de två anropsalternativen.
+
+\fignormal{kompendiumv4Fig183.eps}{Anropsmetoder}{fig:calling_conventions}
+
+Vilken metod som väljs styrs av typ av data och storleken på
+denna. Grundregler:
+
+\begin{xlist}
+\item Alla returvariabler skickas med referens
+(\fkeyw{reference)}. %
+\item Skalära indatavariabler skickas som värden (\fkeyw{value}).
+Detta förhindrar att den anropande rutinen av misstag modifierar
+ett variabelvärde.%
+\item Större matriser eller vektorer bör skickas som referenser
+(\fkeyw{reference)}. %
+\item Strängar skall skickas som referenser (\fkeyw{reference)}.%
+\end{xlist}
+
+Kompilatorinstruktionerna för anropsvariablerna i \textit{calc}
+ser ut på följande sätt:
+
+\begin{lstlisting}
+!dec\$attributes value     :: nBeams,nMaterials
+!dec\$attributes reference :: BeamLengths,BeamLoads,
+!dec\$attributes reference :: BeamProps
+!dec\$attributes reference :: BCTypes,BCDisplValues
+!dec\$attributes reference :: BCRotValues,Materials
+!dec\$attributes reference :: Displacement,Reaction
+!dec\$attributes value     :: EvaluationPoints
+!dec\$attributes reference :: ShearForces,Moments
+!dec\$attributes reference :: Deflections
+\end{lstlisting}
+
+På grund av att indatavariablerna till \fmethod{calc} beskriver en
+geometrisk modell av den kontinuerliga balken, består stora delar
+av rutinen av kod för att skapa topologi och randvillkor.
+\fmethod{calc} använder också dynamisk minnesallokering för att
+problem av godtycklig storlek skall kunna hanteras. Processen i
+\fmethod{calc} kan beskrivas med följande steg:
+
+\begin{enumerate}
+\item Definition av element topologi (\fvar{Edof}).%
+\item Allokering av global styvhetsmatris och lastvektor.%
+\item Beräkning av styvhetsmatriser och assemblering med
+\fmethod{beam2e} och \fmethod{assemElementLoad}.%
+\item Definition av randvillkor. %
+\item Lösning av ekvationssystem med \fmethod{solveq} och
+\fmethod{solve}.%
+\item Beräkning av deformation, moment och tvärkrafter med
+\fmethod{beam2s}. %
+\end{enumerate}
+
+\noindent Den kompletta programkoden för \textit{calc} och modulen
+\textit{beam} kan hittas i bilaga~\ref{app:application_source}.
+
+%---------------------------------------------------------------------
+\subsection{Beräknings-DLL i Fortran}
+%---------------------------------------------------------------------
+
+Det dynamiska länkbiblioteket eller DLL-filen skapas genom att
+skapa ett ''Fortran Dynamic Link Library'' projekt i Visual
+Fortran med namnet \pfname{beamcalc}. Detta görs enligt kapitel
+6.1. Huvudrutinen \fmethod{calc} läggs till projektet som
+\ffname{calc.f90} och modulen \fmethod{beam} som
+\ffname{beam.f90}. När projektet kompileras skapas filen
+\ffname{beamcalc.dll} i katalogen \ffname{Debug} eller
+\ffname{Release} i projektkatalogen. För att kunna koppla denna
+DLL-fil till Delphi måste information om namn på de tillgängliga
+rutinerna tas fram. Information om dessa fås som i
+avsnitt~\ref{sec:exported_functions} genom att använda
+''QuickView'' eller kommandot \cli{dumpbin} vid kommandoprompten.
+kommandot \cli{Dumpbin} listar följande om \textit{beamcalc.dll}:
+
+\begin{quotation}
+\begin{small}
+\noindent
+\begin{verbatim}
+Microsoft (R) COFF Binary File Dumper Version 6.00.8447
+Copyright (C) Microsoft Corp 1992-1998. All rights reserved.
+
+
+Dump of file beamcalc.dll
+
+File Type: DLL
+
+  Section contains the following exports for beamcalc.dll
+
+           0 characteristics
+    38BEA316 time date stamp Thu Mar 02 18:21:26 2000
+        0.00 version
+           1 ordinal base
+           2 number of functions
+           2 number of names
+
+    ordinal hint RVA      name
+
+          2    0 0000101E _calc@60
+          1    1 00001028 calc
+
+  Summary
+
+        1000 .data
+        1000 .idata
+        1000 .rdata
+        1000 .reloc
+        9000 .text
+\end{verbatim}
+\end{small}
+\end{quotation}
+
+Det är deklarationen \ftype{\_calc@60} som skall användas i
+deklarationen av beräkningsdelen i huvudprogrammet. Siffran 60
+utrymmet som behövs för att föra över variablerna i anropet.
+
+%---------------------------------------------------------------------
+\section{Huvudprogram (Delphi)}
+%---------------------------------------------------------------------
+
+Huvudprogrammet för programmet skrivs i Borland Delphi. Följande
+delar kommer att behövas huvudprogrammet:
+
+\begin{xlist}
+\item Huvudformulär med uppritning av geometri, laster, randvillkor och resultat. (\pfname{frmMain.dfm, main.pas}) %
+\item Formulär för hantering av en materiallista. (\pfname{frmMaterials.dfm, beammat.pas}) %
+\item Formulär för att modifiera geometri och last. (\pfname{frmBeamProp.dfm, beamprop.pas}) %
+\item Formulär för att modifiera randvillkor. (\pfname{frmBCs.dfm, beambc.pas}) %
+\item Formulär för presentation av resultat i numerisk form. (\pfname{frmResults.dfm, beamresult.pas}) %
+\item Programenhet (unit) för hantering av balkmodell. (\pfname{beammodel.pas}) %
+\item Programenhet (unit) för hantering av uppritning. (\pfname{beamdraw.pas}) %
+\item Programenhet (unit) för interface till beräknings-DLL. (\pfname{beamcalc.pas}) %
+\end{xlist}
+
+Alla funktioner för hantering av balkmodellen är inkapslade i tre
+programenheter (units) \punit{BeamModel}, \punit{BeamDraw} och
+\punit{BeamCalc}. Dessa programenheter är skrivna enligt
+''svarta-lådan'' principen. Med detta menas att alla variabler i
+programenheterna endast kan nås genom ett antal underprogram. Med
+denna metod kapslas implementeringen in och det är lättare att i
+ett senare skede ändra denna. Relationerna mellan de olika
+programenheterna visas i figur~\ref{fig:unit_relations}.
+
+\fignormal{kompendiumv4Fig184.eps}{Relationer mellan
+programenheter}{fig:unit_relations}
+
+Genom att rutinerna för uppritning och hantering av balkmodell
+skiljs från användargränssnittskoden blir programmet lättare att
+underhålla. Det är också lättare att ändra användargränssnittet
+eftersom händelserutinerna endast innehåller minimalt med
+funktionalitet.
+
+%---------------------------------------------------------------------
+\subsection{Programenheten BeamModel}
+%---------------------------------------------------------------------
+
+\punit{BeamModel} innehåller alla funktioner som behövs för att
+hantera beskrivningen av en kontinuerlig balk. Enheten innehåller
+också funktioner för att läsa och skriva modellen till fil samt
+att köra beräkningen med hjälp av enheten \punit{BeamCalc}.
+Lagringen av modellen sker i ett antal vektorer och matriser
+definierade med samma datatyper som i Fortran-koden. Detta gör att
+vi enkelt kan anropa beräkningsdelen utan att behöva använda
+temporära variabler. Deklarationen av datatyperna visas i följande
+kodutdrag.
+
+\begin{lstlisting}
+NumberOfBeams      : integer;
+NumberOfMaterials  : integer;
+BeamLengths        : TDoubleBeamVector;
+BeamLoads          : TDoubleBeamVector;
+BeamProps          : TIntBeamVector;
+.
+.
+BCTypes            : TIntBCVector;
+BCDisplValues      : TDoubleBCVector;
+BCRotValues        : TDoubleBCVector;
+BCPositions        : TDoubleBCVector;
+
+Materials          : TMaterialMatrix;
+
+Reaction           : TReactionVector;
+Displacement       : TDisplacementVector;
+ShearForces        : TResultMatrix;
+Moments            : TResultMatrix;
+Deflections        : TResultMatrix;
+\end{lstlisting}
+
+Rutiner för att hantera balkmodellen kan delas in i ett antal
+kategorier:
+
+\begin{xlist}
+\item Materialhantering %
+\item Balkrutiner %
+\item Randvillkor %
+\item Resultat %
+\item Modellhantering %
+\end{xlist}
+
+För att på ett enkelt sätt hantera materialegenskaper kan en lista
+av material läggas upp. Varje balksegment i modellen refererar
+sedan till något av dessa. Hanteringen av materialen sker med
+hjälp av fem rutiner visade i tabell~\ref{tbl:material_handling}.
+
+\begin{table}[!htb]
+\begin{center}
+\begin{tabular}{|p{0.4\textwidth}|p{0.5\textwidth}|}
+\hline
+Rutin &  Beskrivning \\
+\hline
+\pmethod{AddMaterial(E, A, I : double)} &  Lägger till ett material sist i material listan. \\
+\hline
+\pmethod{RemoveMaterial(idx : integer)} &  Tar bort materialet på positionen idx. Efterföljande material flyttas upp ett steg i listan. \\
+\hline
+\pmethod{SetMaterial(idx : integer; E, A, I : double)} &   Tilldelar ett material på positionen idx i listan givna egenskaper. \\
+\hline
+\pmethod{GetMaterial(idx : integer; var E, A, I : double)} &   Tilldelar variablerna E, A, I egenskaperna för materialet i position idx. \\
+\hline
+\pmethod{GetNumberOfMaterials : integer} & Returnerar antalet material i listan. \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Rutiner för hantering av material} \label{tbl:material_handling}
+\end{table}
+
+
+Varje balksegment beskrivs med en längd, utbreddlast och ett
+material index. Rutinerna för hantering av balksegment är snarlika
+dem för material, se tabell~\ref{tbl:beam_segment_handling}.
+
+\begin{table}[!htb]
+\begin{center}
+\begin{tabular}{|p{0.4\textwidth}|p{0.5\textwidth}|}
+\hline
+Rutin &  Beskrivning \\
+\hline
+\pmethod{AddBeam(l, q : double; material : integer)} &   Lägger till ett balksegment på slutet med längden l, lasten q och materialindex material. \\
+\hline
+\pmethod{RemoveBeam(idx : integer)} &    Tar bort balksegmentet på position idx. Efterföljande balkar flyttas upp. \\
+\hline
+\pmethod{SetBeam(idx : integer; l, q : double; material : integer)} &    Tilldelar balksegmentet idx längden l och lasten q. \\
+\hline
+\pmethod{GetBeam(idx : integer; var l, q : double; var material : integer)} &    Tilldelar l, q och material värden för balksegmentet idx. \\
+\hline
+\pmethod{GetNumberOfBeams : integer} &   Returnerar antalet balksegment för modellen. \\
+\hline
+\pmethod{GetTotalLength : double} & Returnerar totallängden för den kontinuerliga balken. \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Rutiner för hantering av balksegment} \label{tbl:beam_segment_handling}
+\end{table}
+
+Randvillkoren för balkmodellen lagras per nod. Antalet randvillkor
+som kan definieras är då \pmethod{GetNumberOfBeams} + 1. En nod
+kan antingen vara fri eller ha föreskrivna förskjutningar eller
+rotationer. Randvillkorstypen bestäms av konstanterna
+\ptype{bcFree, bcFixedDispl, bcFixedRot} och \ptype{bcFixed}.
+Hanteringen av randvillkoren sker med rutinerna beskrivna i
+tabell~\ref{tbl:bc_handling}.
+
+\begin{table}[!htb]
+\begin{center}
+\begin{tabular}{|p{0.4\textwidth}|p{0.5\textwidth}|}
+\hline
+Rutin &  Beskrivning \\
+\hline
+\pmethod{SetBC(idx : integer; bcType : integer; bcDisplValue, bcRotValue : double)} &    Tilldelar noden idx ett randvillkor av typen bcType. bcDisplValue och bcRotValue anger värdet på eventuella föreskrivna förskjutningar. \\
+\hline
+\pmethod{GetBC(idx : integer; var bcType : integer; var bcDisplValue, bcRotValue : double)} &    Tilldelar bcType, bcDisplValue och bcRotValue randvillkorsegenskaperna för nod idx. \\
+\hline
+\pmethod{GetNodePos(idx : integer) : double} &   Returnerar avståndet från början av balken till nod idx. \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Rutiner för hantering av randvillkor} \label{tbl:bc_handling}
+\end{table}
+
+Beräkning av en balkmodell sker med hjälp av rutinen
+\pmethod{Execute}. Genom att vi har använt ''svarta-lådan''
+principen behöver en användare av \punit{BeamModel} aldrig veta
+detaljerna om hur anropet till beräkningsdelen går till.
+Beräkningen exekveras genom ett enkelt anrop till \pmethod{Execute}
+utan några parametrar. Genom att de variabler som behövs för
+beräkningen är synliga för \pmethod{Execute} besparas användare
+besväret att direkt anropa programenheten \punit{BeamCalc} med
+alla variabler som behövs för detta. Efter det att beräkningen har
+avslutats beräknar också \pmethod{Execute} max-värden på alla
+resultat, så att dessa är tillgängliga vid uppritningen av
+modellen. Programkoden för \pmethod{Execute} visas nedan.
+
+\begin{lstlisting}[texcl]
+procedure Execute;
+var
+    i,j : integer;
+begin
+
+  // Anropa fortran kod för beräkning
+
+  BeamCalc.Calc(
+    NumberOfBeams,
+    NumberOfMaterials,
+    BeamLengths,
+    BeamLoads,
+    BeamProps,
+    BCTypes,
+    BCDisplValues,
+    BCRotValues,
+    Materials,
+    Displacement,
+    Reaction,
+    MaxEvaluationPoints,
+    ShearForces,
+    Moments,
+    Deflections);
+
+  // Beräkna max värden för skalning
+
+  MaxMoment:=-1e300;
+  MaxDeflection:=-1e300;
+  MaxShearForce:=-1e300;
+
+  for i:=1 to NumberOfBeams do
+  begin
+    for j:=1 to MaxEvaluationPoints do
+    begin
+      if abs(Moments[i,j])>MaxMoment then
+        MaxMoment:=abs(Moments[i,j]);
+      if abs(Deflections[i,j])>MaxDeflection then
+        MaxDeflection:=abs(Deflections[i,j]);
+      if abs(ShearForces[i,j])>MaxShearForce then
+        MaxShearForce:=abs(ShearForces[i,j]);
+    end;
+  end;
+end;
+\end{lstlisting}
+
+När en beräkning avslutats finns alla resultaten lagrade i
+\punit{BeamModel}. Åtkomst av dessa variabler sker genom genom
+rutinerna beskrivna i tabell~\ref{tbl:result_handling}.
+
+\begin{table}[!htb]
+\begin{center}
+\begin{tabular}{|p{0.4\textwidth}|p{0.5\textwidth}|}
+\hline
+Rutin &  Beskrivning \\
+\hline
+\pmethod{GetMoment(BeamIdx, PointIdx : integer) : double} & Returnerar momentet i punkten PointIdx för balken BeamIdx. BeamIdx måste vara <= GetNumberOfBeams. PointIdx måste vara mindre än konstanten MaxEvaluationPoints vilken finns definierad i BeamModel. \\
+\hline
+\pmethod{GetDeflection(BeamIdx, PointIdx : integer) : double} &  Returnerar deformationen i punkten PointIdx för balken BeamIdx. \\
+\hline
+\pmethod{GetShearForce(BeamIdx, PointIdx : integer) : double} &  Returnerar tvärkraften i punkten PointIdx för balken BeamIdx. \\
+\hline
+\pmethod{GetMaxDeflection : double} &    Returnerar max utböjning för alla balksegment. \\
+\hline
+\pmethod{GetMaxMoment : double} &    Returnerar max moment för alla balksegment. \\
+\hline
+\pmethod{GetMaxShearForce : double} &    Returnerar max tvärkraft för alla balksegment. \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Rutiner för hantering av resultat} \label{tbl:result_handling}
+\end{table}
+
+\punit{BeamModel} innhåller också funktioner för att läsa och
+skriva modellen till fil. Filformatet beskrivs nedan:
+
+\begin{psyntax}
+$\{Antalet~material~n\}$\\
+$\{E_1~A_1~I_1\}$\\
+. \\
+. \\
+$\{E_n~A_n~I_n\}$\\
+$\{Antalet~balksegment~k\}$\\
+$\{L_1~q_1~Materialidx_1\}$\\
+. \\
+. \\
+$\{L_k~q_k~Materialidx_k\}$\\
+$\{Randvillkorstyp_1~Forskjutning_1~Rotation_1\}$ \\
+. \\
+. \\
+$\{Randvillkorstyp_{k+1}1~Forskjutning_{k+1}~Rotation_{k+1}\}$ \\
+\end{psyntax}
+
+Hanteringen av balkmodellen sker med följande funktionerna i
+tabell~\ref{tbl:model_handling}.
+
+\begin{table}[!htb]
+\begin{center}
+\begin{tabular}{|p{0.4\textwidth}|p{0.5\textwidth}|}
+\hline
+Rutin &  Beskrivning \\
+\hline
+\pmethod{SetModelName(FileName : string)} & Sätter filnamnet för balkmodellen. \\
+\pmethod{GetModelName : string} &    Returnerar filnamnet för modellen. \\
+\pmethod{NewModel} &     Raderar befintliga data i balkmodellen. \\
+\pmethod{Save} &     Sparar modellen med filnamn angivet med \pmethod{SetModelName}. Om filnamn ej är angivet sparas modellen med namnet \pfname{noname.bml}. \\
+\pmethod{Open} &     Öppnar modellen med filnamn angivet med \pmethod{SetModelName}. Om filnamn ej är angivet öppnas modellen \pfname{noname.bml}. \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Modellhanteringsrutiner} \label{tbl:model_handling}
+\end{table}
+
+%---------------------------------------------------------------------
+\subsection{Programenheten BeamCalc}
+%---------------------------------------------------------------------
+
+\punit{BeamCalc} är kopplingen mellan huvudprogrammet och
+beräkningsdelen. I denna deklareras subrutinen \pmethod{calc} i det
+dynamiskt länkade Fortran-biblioteket. En koppling till ett
+dynamiskt länkat bibliotek i Delphi brukar oftast göras genom att
+definiera en programenhet med samma namn som biblioteket. I denna
+programenhet placeras sedan deklarationerna av de ingående
+rutinerna precis som vanligt efter \pkeyw{interface}-delen i
+programenheten. I \textit{implementeringsdelen} placeras istället
+för den kompletta rutinen en extern referens till en DLL. Följande
+kod visar hur detta set ut för \pmethod{calc}-rutinen i
+beräkningsdelen.
+
+\begin{lstlisting}
+.
+.
+
+interface
+
+uses BeamModel;
+
+procedure Calc(
+  nBeams,
+  nMaterials : integer;
+  var BeamLengths : TDoubleBeamVector;
+
+  .
+  .
+
+implementation
+
+procedure Calc(
+  nBeams,
+  nMaterials : integer;
+  var BeamLengths : TDoubleBeamVector;
+
+  .
+  .
+
+  var Moments : TResultMatrix;
+  var Deflections : TResultMatrix);
+  stdcall;
+  external '..\fortran\beamcalc\debug\beamcalc.dll'
+  name '_calc@60';
+\end{lstlisting}
+
+Direktivet \pkeyw{stdcall} anger vilken anropskonvention som
+används, i detta fall \pkeyw{stdcall}. \pkeyw{external}  anger att
+rutinen finns implementerad i \pfname{beamcalc.dll} med namnet
+\pname{\_calc@60}. Sökvägen angiven i ovanstående kod är bra att
+ha under utvecklingen av programmet, eftersom man ej hela tiden
+behöver kopiera DLL-filen mellan Visual Fortran-projektet och
+Delphi-projektet. När programmet är färdigutvecklat bör endast
+namnet \pfname{beamcalc.dll} stå kvar i deklarationen. Låter man
+sökvägen vara kvar måste DLL-filen ligga precis enligt
+deklarationen för att programmet skall fungera.
+
+\punit{BeamCalc} använder de datatyper som är definierade i
+\punit{BeamModel} för att deklarera de matriser och vektorer som
+skall föras över. Variabler som överförs med referens motsvaras av
+en \pkeyw{var}-deklaration i Pascal.
+
+%---------------------------------------------------------------------
+\subsection{Programenheten BeamDraw}
+%---------------------------------------------------------------------
+
+\punit{BeamDraw} hanterar all uppritning i programmet. För att
+uppritningen skall kunna hanteras på ett flexibelt sätt har den
+delats upp i ett antal olika rutiner. Denna uppdelning gör att de
+olika rutinerna kan kombineras på olika sätt för att skapa önskat
+resultat. För att uppritningsrutinerna skall vara oberoende av
+något programfönster, tar alla rutiner en rityta av typen
+\ptype{TCanvas} som indata. Detta gör att uppritningsrutiner kan
+styras, som att t ex rita direkt på en rityta för en skrivare.
+Följande uppritningsrutiner finns i \punit{BeamDraw}.
+
+\begin{table}[!htb]
+\begin{center}
+\begin{tabular}{|l|p{0.4\textwidth}|}
+\hline
+Rutin &  Beskrivning \\
+\hline
+\pmethod{DrawBackground(ACanvas : TCanvas)} &    Uppritning av bakgrund. \\
+\pmethod{DrawGeometry(ACanvas : TCanvas)} &  Ritar upp balkgeometrin. \\
+\pmethod{DrawLoads(ACanvas : TCanvas)} &     Ritar upp lasterna. \\
+\pmethod{DrawBCs(ACanvas : TCanvas)} &   Ritar upp randvillkor. \\
+\pmethod{DrawDimensions(ACanvas : TCanvas)} &    Ritar upp måttlinjer. \\
+\pmethod{DrawDeflections(ACanvas  : TCanvas)} &  Ritar upp deformationer. \\
+\pmethod{DrawMoments(ACanvas : TCanvas)} &   Ritar upp moment. \\
+\pmethod{DrawShearForces(ACanvas : TCanvas)} &   Ritar upp tvärkrafter. \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Uppritningsrutiner i \punit{BeamDraw}} \label{tbl:draw_handling}
+\end{table}
+
+För att styra hur stor rityta som finns tillgänglig används
+följande rutin
+
+\begin{psyntax}
+SetDrawArea(width, height : \textbf{integer})
+\end{psyntax}
+
+Denna anropas lämpligtvis vid händelserna \pprop{FormShow} och
+\pprop{FormResize}.
+
+%---------------------------------------------------------------------
+\subsection{Huvudformulär}
+%---------------------------------------------------------------------
+
+Huvudformuläret i programmet skall innehålla meny, verktygsfält
+och en rityta. Genom att funktionalitetet i programmet delats upp
+på ett antal programenheter kommer huvudformuläret att endast en
+innehålla begränsad mängd kod och endast anrop till
+programenheterna. För att ytterligare minska mängden kod som
+behöver skrivas kommer så kallade händelselistor att användas.
+Händelselistan (ActionList) är en ny komponent som infördes i
+Delphi 4. I denna komponent kan man samla alla händelser i en
+central lista. Menyer och verktygsfält kan sedan referera till
+denna lista istället för att hantera egna händelser. Tidigare
+behövdes två händelser för en och samma funktion om samma funktion
+återfanns i både menyn och på verktygsfältet.
+
+Händelselistan skapas genom att välja
+\figbutton{btn_comp_actionlist.eps} i komponentpaletten under
+fliken standard och klicka på formuläret. Komponenten ges namnet
+\pobject{actMain}. Redigering av listan görs genom att
+dubbelklicka på denna, då visas ett egenskapsfönster.
+
+\figsmall{kompendiumv4Fig185.eps}{Egenskapsfönster för
+händelselista}{fig:action_list_edit1}
+
+En ny tom händelse skapas genom att klicka i vertygsfältet, då
+visas följande i egenskapsfönstret.
+
+\figsmall{kompendiumv4Fig186.eps}{Ny händelse}{fig:new_action}
+
+Egenskaper för händelser redigeras i objektinspektorn, precis som
+andra komponenter i Delphi. Figur~\ref{fig:action_property} visar
+egenskaperna för en händelse (Action).
+
+\figsmall{action_property.eps}{Egenskaper för en
+händelse}{fig:action_property}
+
+\pprop{Caption} är en beskrivning som används av de kontroller,
+som stödjer detta t ex menyer och knappar. \pprop{Category} saknar
+egentligen funktion, men används för att hålla ordning på en stor
+mängd händelser. \pprop{Checked} används på samma sätt som vid en
+kryssruta. Är denna satt till \pkeyw{true} anger detta att ett
+alternativ är valt. Visning av detta är beroende på vilken
+kontroll händelsen är kopplad till. Egenskapen \pprop{Enabled}
+aktiverar eller deaktiverar ett alternativ. Detta visas ofta genom
+att alternativet blir grått i kontroller. \pprop{ImageIndex} anger
+vilken bild i en \pprop{ImageList}-kontroll, som skall kopplas
+till ett givet alternativ. Följande tabell visar vilka händelser
+och egenskaper som är definierade för exemplet.
+
+\begin{table}[!htb]
+\begin{center}
+\begin{tabular}{|l|l|l|l|}
+\hline
+Name  & Category    & ImageIndex  & Caption \\
+\hline
+\pobject{actNew}  & File    & 0   & Ny balk \\
+\pobject{actOpen} & File    & 1   & Öppna... \\
+\pobject{actSave} & File    & 2   & Spara \\
+\pobject{actSaveAs}   & File    & 2   & Spara som... \\
+\pobject{actExit} & File    -& 1  & Avsluta \\
+\pobject{actMaterials}    & Input   & 4   & Material... \\
+\pobject{actProperties}   & Input   & 3   & Balk egenskaper \\
+\pobject{actBC}   & Input   & 5   & Randvillkor... \\
+\pobject{actDeflections}  & Result  & 10  & Nedböjningar \\
+\pobject{actMoments}  & Result  & 11  & Moment \\
+\pobject{actShearForces}  & Result  & 12  & Tvärkrafter \\
+\pobject{actNumerical}    & Result  & 13  & Numeriskt... \\
+\pobject{actCalc} & Calc    & 7   & Beräkna... \\
+\pobject{actAddSegment}   & Input   & 8   & Lägg till balk \\
+\pobject{actRemoveSegment}    & Input   & 9   & Ta bort balk \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Händelser för balkprogrammet} \label{tbl:actions}
+\end{table}
+
+
+En \pobject{ImageList}-kontroll \pobject{imlMain} används för att
+lagra de bilder som skall finnas i menyn och verktygsfältet. Se
+avsnitt~\ref{sec:imagelist_control} för en mer detaljerad
+beskrivning av \pobject{ImageList}-kontrollen.
+Figur~\ref{fig:imagelist_images} visar bilderna som används i
+\pobject{imlMain}.
+
+\fignormal{images_in_imagelist.eps}{Bilder i
+ImageList-kontroll}{fig:imagelist_images}
+
+Verktygsfält och menyer kopplas nu till händelselistan.
+Menykontrollen \pobject{mnuMain} läggs till och motsvarande menyer
+för händelserna skapas. Kopplingen av händelser till menyn sker
+genom egenskapen \pprop{Action} i objektinspektorn.
+Figur~\ref{fig:connecting_menu_action} visar hur en händelse
+\pobject{actNew} kopplas till menyalternativet \menuitem{Arkiv/Ny
+balk}.
+
+\fignormal{kompendiumv4Fig187.eps}{Koppling av meny till
+händelse}{fig:connecting_menu_action}
+
+För att bilderna skall synas i alla kontroller, måste egenskapen
+\textit{Images} sättas för alla kontroller. Nytt för Delphi 4 är
+att menyer kan innehålla bilder på samma sätt som i Microsoft Word
+eller Visual Fortran. Detta ger en mer konsekvent koppling mellan
+menyer och verktygsfält.
+
+Verktygsfältet i balkprogrammet kommer att vara en kombination av
+komponenterna \pobject{ControlBar} och \pobject{Toolbar}.
+\pobject{ControlBar}-kontrollen \pobject{ctlbToolbars} kommer att
+hantera verktygsfälten i balkprogrammet. Kontrollen placeras med
+hjälp av egenskapen \pprop{Align = alTop} under menyn. Egenskapen
+\pprop{AutoSize} sätts också till \pobject{true} för att
+automatisk skalning till verktygsfältens storlekar skall ske.
+Egenskapen \pprop{BevelInner} sätts till \pvar{bvNone} för att
+vertygsfälten skall passa in bättre layoutmässigt.
+Verktygsfälteten skapas genom att välja en Toolbar-kontroll under
+fliken \pobject{Win32} i komponentpaletten och klicka ut denna på
+\pobject{ControlBar-}kontrollen. För att verktygsfälten skall få
+ett mer korrekt utseende sätts egenskapen
+\pprop{EdgeBorders/ebTop} till \pkeyw{false} och \pprop{Flat} till
+\pkeyw{true}. Knappar i verktygsfälten läggs till genom att
+markera detta och klicka högerknappen och välja \menuitem{New
+Button}. Knapparna knyts på samma sätt som menyerna till
+händelserna genom egenskapen \pprop{Action}. På detta sätt skapas
+nu följande verktygsfält vilka kopplas till motsvarande
+händelselistor:
+
+\fignormal{kompendiumv4Fig188.eps}{Verktygsfält i
+balkprogram}{fig:beam_toolbars}
+
+Den sista komponenten som skall placeras på huvudformuläret är en
+ram (Bevel) för att markera ritytan. Egenskapen \pprop{Align} för
+ramen sätts till \ptype{alClient}.
+
+Nu har alla delar av gränssnittet placerats ut och konfigurerats
+grafiskt. Nästa steg är att koppla kod till händelser och
+händelselistor i programmet. Innan kod för händelserna i
+programmet läggs till skall ett par variabler läggas till
+formulärdeklarationen:
+
+\begin{lstlisting}
+.
+.
+private
+  { Private declarations }
+  FHaveName : boolean;
+  FDirty : boolean;
+  FShowMoments : boolean;
+  FShowShearForces : boolean;
+  FShowDeflections : boolean;
+public
+  { Public declarations }
+end;
+\end{lstlisting}
+
+\pvar{FHaveName} anger om användare tidigare döpt och sparat
+modellen. Denna variabel används för att avgöra om alternativet
+spara behöver öppna en dialogruta för att fråga efter ett filnamn.
+\pvar{FDirty} anger om modellegenskaperna har modifierats efter
+det att en beräkning har utförts. Det tre sista variablerna kommer
+att användas för att ange vilka resultat som skall ritas upp
+samtidigt.
+
+För att kunna använda de tidigare beskrivna programenheterna
+(unit:s) \punit{BeamModel} och \punit{BeamDraw} måste dessa läggas
+till i formulärets \pkeyw{use} deklaration.
+
+\begin{lstlisting}[escapechar=\_]
+uses
+  Windows, Messages, SysUtils, Classes, ...,
+  Forms, Dialogs, ActnList, ImgList, ...,
+  ExtCtrls, StdCtrls, Menus, _\underline{BeamModel, BeamDraw};
+\end{lstlisting}
+
+När programmet startas måste ofta variabler initieras och andra
+inställningar göras. Detta läggs lämpligast i formulärets
+\pprop{OnCreate} händelse. Denna händelse kan tilldelas genom
+dubbelklicka på huvudformuläret. Följande kod läggs in i
+pprop{FormCreate}.
+
+\begin{lstlisting}
+procedure TfrmMain.FormCreate(Sender: TObject);
+begin
+  BeamModel.AddMaterial(1.0, 1.0, 1.0);
+  BeamModel.AddBeam(4.0, -1.0, 1);
+  BeamModel.SetBC(1, bcFixedDispl, 0.0, 0.0);
+  BeamModel.SetBC(2, bcFixedDispl, 0.0, 0.0);
+  FHaveName:=false;
+  FShowMoments:=false;
+  FShowDeflections:=true;
+  actDeflections.Checked:=true;
+  FShowShearForces:=false;
+  FDirty:=true;
+end;
+\end{lstlisting}
+
+De första 4 raderna skapar en enkel balk, fritt upplagd på två
+stöd. \pvar{FHaveName} sätts till \pkeyw{false} för att
+indikera att vi ej har sparat modellen. Vid en beräkning väljs att
+visa deformationerna som förinställt värde. \pvar{FDirty} sätts
+till \pkeyw{true} för att ange att en beräkning ej har gjorts.
+
+För att balkmodellen skall synas i formuläret måste formulärets
+\pprop{OnPaint} händelse tilldelas kod. Detta görs genom att
+välja huvudformuläret i objekt-inspektorn och dubbelklicka på
+\pprop{OnPaint} under fliken \guitab{Events}. I denna händelse
+använder vi de rutiner som finns i \punit{BeamDraw} för att rita
+upp balkmodellen. Varje formulär har en rityta (Canvas). Denna
+rityta skickar vi som indata till ritrutinerna. Dessa kommer då
+att rita direkt på formuläret. Koden för \pprop{OnPaint} visas
+nedan.
+
+\begin{lstlisting}
+procedure TfrmMain.FormPaint(Sender: TObject);
+begin
+  BeamDraw.DrawBackground(Canvas);
+  BeamDraw.DrawLoads(Canvas);
+  BeamDraw.DrawBCs(Canvas);
+  BeamDraw.DrawGeometry(Canvas);
+  BeamDraw.DrawDimensions(Canvas);
+  if (not FDirty) then
+  begin
+    if (FShowDeflections) then
+      BeamDraw.DrawDeflections(Canvas);
+    if (FShowMoments) then
+      BeamDraw.DrawMoments(Canvas);
+    if (FShowShearForces) then
+      BeamDraw.DrawShearForces(Canvas);
+  end;
+end;
+\end{lstlisting}
+
+Uppritning av resultat sker endast om \pvar{FDirty} är satt till
+\pkeyw{false}, för att förhindra visning av resultat som ej
+motsvarar modellegenskaperna. Kompileras och körs programmet i
+detta skick kommer huvudfönstret att se ut som figur~\ref{fig:invalid_drawing}.
+
+\fignormal{kompendiumv4Fig189.eps}{Resultat av körning}{fig:invalid_drawing}
+
+Lägg märke till att alla kontroller är ``gråade''. Detta beror på
+att ingen kod är kopplad till händelser i händelselistan.
+Anledningen till att balkmodellen endast ritas i övre vänstra
+hörnet är att ritytan ej har definierats i \punit{BeamDraw} med
+rutinen \pmethod{SetDrawArea}. För att hantera detta definieras
+händelserna \pprop{OnShow} och \pprop{OnResize}. \pprop{OnShow}
+anropas när fönstret först visas. \pprop{OnResize} anropas när
+fönstret ändrar storlek. Följande kod visar dessa händelserutiner.
+
+\begin{lstlisting}
+procedure TfrmMain.FormResize(Sender: TObject);
+begin
+  BeamDraw.SetDrawArea(ClientWidth, ClientHeight);
+end;
+
+procedure TfrmMain.FormShow(Sender: TObject);
+begin
+  BeamDraw.SetDrawArea(ClientWidth, ClientHeight);
+end;
+\end{lstlisting}
+
+\pprop{ClientHeight} och \pprop{ClientWidth} anger storleken på
+det inre området av fönstret. Kompileras och körs programmet nu
+ser fönstret ut som i figur~\ref{fig:correct_resize}.
+
+\fignormal{kompendiumv4Fig190.eps}{Formulär med \pprop{OnResize}
+och \pprop{OnShow} implementerade}{fig:correct_resize}
+
+Det som återstår är att koppla kod till händelselistan. Detta görs
+genom att först ta fram egenskapsfönstret för händelselistan.
+Därefter dubbelklickar man på en händelse (Action) för att koppla
+kod till denna. Den första händelsen vi kopplar kod till är
+\menuitem{Arkiv/Ny balk}. Denna händelse skall radera modellen och
+återställa programmet till startläget igen. Följande kod anges:
+
+\begin{lstlisting}
+procedure TfrmMain.actNewExecute(Sender: TObject);
+begin
+  BeamModel.NewModel;
+  BeamModel.AddMaterial(1.0, 1.0, 1.0);
+  BeamModel.AddBeam(4.0, 0.0, 1);
+  BeamModel.SetBC(1, bcFixedDispl, 0.0, 0.0);
+  BeamModel.SetBC(2, bcFixedDispl, 0.0, 0.0);
+  FHaveName:=false;
+  Self.Invalidate;
+end;
+\end{lstlisting}
+
+Detta är i princip samma kod som i händelsen \pprop{OnCreate} med
+skillnaden att \pvar{BeamModel.NewModel} anropas för att
+nollställa balkmodellen. \pmethod{Self.Invalidate} anger att
+fönstret behöver ritas om.
+
+För att koppla kod till nästa tre händelser behöver två
+dialog-kontroller skapas. En \pobject{OpenDialog} som ges namnet
+\pobject{dlgOpen} och en \pobject{SaveDialog} med namnet
+\pobject{dlgSave.} I händelsen för \menuitem{Arkiv/Öppna...} visas
+först en dialogruta för att användaren skall kunna välja vilken
+fil som skall öppnas. Efter detta används rutinerna i
+\punit{BeamModel} för att öppna den valda modellen.
+
+\begin{lstlisting}
+procedure TfrmMain.actOpenExecute(Sender: TObject);
+begin
+  if dlgOpen.Execute then
+  begin
+    BeamModel.NewModel;
+    BeamModel.SetModelName(dlgOpen.FileName);
+    BeamModel.Open;
+    FHaveName:=true;
+    Self.Invalidate;
+  end;
+end;
+\end{lstlisting}
+
+\pvar{FHaveName} sätts till \pkeyw{true} eftersom vi har fått ett
+filnamn. Fönstret uppdateras sen med hjälp av
+\pmethod{Self.Invalidate}. Händelsen för \menuitem{Arkiv/Spara
+som...} ser ut som för att öppna en fil med den skillnaden att
+\pobject{dlgSave} anropas istället för \pobject{dlgOpen} och att
+rutinen \pmethod{Save} i \punit{BeamModel} anropas. Arkiv/Spara
+kontrollerar först om modellen tidigare sparats genom att
+kontrollera flaggan \pvar{FHaveName}. Om ett filnamn har
+tilldelats sparas modellen utan vidare frågor, annars anropas
+rutinen för Arkiv/Spara.
+
+\begin{lstlisting}
+procedure TfrmMain.actSaveExecute(Sender: TObject);
+begin
+  if FHaveName then
+    BeamModel.Save
+  else
+    begin
+      actSaveAsExecute(Self);
+    end;
+end;
+\end{lstlisting}
+
+Knapparna \keyb{[+]} och \keyb{[-]} används för att lägga till och
+ta bort balksegment på den kontinuerliga balken. Textrutan används
+för att ange längden på balksegmentet, som skall läggas till.
+Händelserna för dessa knappar använder rutinerna
+\pmethod{BeamModel.AddBeam} och \pmethod{BeamModel.RemoveBeam} för
+att uppdatera modellen. Händelsen för att lägga till ett
+balksegment visas nedan.
+
+\begin{lstlisting}
+procedure TfrmMain.actAddSegmentExecute(Sender: TObject);
+begin
+  BeamModel.AddBeam(
+    StrToFloat(edtNewLength.Text), 0.0, 1);
+  SetBC(GetNumberOfBeams+1,bcFixedDispl,0.0,0.0);
+  FDirty:=true;
+  Self.Invalidate;
+end;
+\end{lstlisting}
+
+Händelsen för att ta bort ett segment ser ut på liknande
+sätt. \\
+
+Beräkning av balken sker i händelsen \pprop{actCalc}. Beräkningen
+anropas genom att anropa \pmethod{BeamModel.Execute}. Efter det
+att beräkningen är genomförd sätts \pvar{FDirty} till
+\pkeyw{false} för att ange att modellen är aktuell och att
+resultaten kan ritas upp. Koden för händelsen visas nedan.
+
+\begin{lstlisting}
+procedure TfrmMain.actCalcExecute(Sender: TObject);
+begin
+  BeamModel.Execute;
+  FDirty:=false;
+  Self.Invalidate;
+end;
+\end{lstlisting}
+
+Händelserna för Resultat/Deformationer, Resultat/Moment och
+Resultat/\-Tvärkrafter sätter flaggorna för visning av olika
+resultat och begär att fönstret skall ritas om. Koden för
+Resultat/Deformationer visas nedan.
+
+\begin{lstlisting}
+procedure TfrmMain.actDeflectionsExecute(Sender: TObject);
+begin
+  FShowDeflections:=not FShowDeflections;
+  actDeflections.Checked:=FShowDeflections;
+  Self.Invalidate;
+end;
+\end{lstlisting}
+
+Övriga händelser för visning ser ut på samma sätt.
+\\
+De flesta händelser är nu implementerade i huvudformuläret.
+Återstående händelser behandlas i de kommande kapitlen. Formuläret
+har nu följande utseende.
+
+\fignormal{kompendiumv4Fig191.eps}{Huvduformulär utan kopplingar
+till dialogrutor}{fig:main_form_no_dialogs}
+
+%---------------------------------------------------------------------
+\subsection{Balkegenskapsformulär }
+%---------------------------------------------------------------------
+
+I balkegenskapsformuläret skall egenskaper som längd, utbredd last
+och material kunna redigeras för varje balksegment. Figur 8{\-}14
+visar formulärets layout samt namn på ingående kontroller.
+
+\figmedium{kompendiumv4Fig192.eps}{Balkegenskapsformulär}{fig:beam_properties_window}
+
+Formuläret hämtar information om balken från programenheten
+\punit{BeamModel,} varför denna måste läggas till i
+implementeringsdelen av formuläret.
+
+\begin{lstlisting}
+.
+.
+implementation
+
+{$R *.DFM}
+
+uses BeamModel;
+\end{lstlisting}
+
+För att hantera uppdatering av kontroller på ett enkelt sätt
+implementeras tre rutiner för detta ändamål. En variabel för
+aktuellt segment deklareras också. Följande kod visar hur dessa
+rutiner läggs till i formulärdeklarationen.
+
+\begin{lstlisting}
+.
+.
+private
+    { Private declarations }
+    FCurrentBeam : integer;
+
+    procedure SetData;
+    procedure GetData;
+    procedure FillListBoxes;
+.
+.
+\end{lstlisting}
+
+När dessa rutiner deklareras kan Delphi skriva
+implementeringskoden automatiskt genom att placera textmarkören i
+koden och trycka \keyb{[Ctrl]+[Shift]+C}. Rutinen \pmethod{FillListBoxes}
+fyller combobox-kontrollerna \pobject{cboSegment} och
+\pobject{cboMaterial} med värden från \punit{BeamModel}.
+
+\begin{lstlisting}
+procedure TfrmBeamProps.FillListBoxes;
+var
+    i : integer;
+begin
+  cboSegment.Clear;
+  for i:=1 to BeamModel.GetNumberOfBeams do
+    cboSegment.Items.Add(IntToStr(i));
+  cboSegment.ItemIndex:=0;
+
+  cboMaterial.Clear;
+  for i:=1 to BeamModel.GetNumberOfMaterials do
+    cboMaterial.Items.Add(IntToStr(i));
+  cboMaterial.ItemIndex:=0;
+end;
+\end{lstlisting}
+
+Övriga kontroller fylls med data i rutinen \textit{SetData}.
+
+\begin{lstlisting}
+procedure TfrmBeamProps.SetData;
+var
+    BeamLength : double;
+    BeamLoad : double;
+    BeamProp : integer;
+begin
+  FCurrentBeam:=cboSegment.ItemIndex+1;
+  BeamModel.GetBeam(FCurrentBeam, BeamLength, BeamLoad,
+                    BeamProp);
+  edtLength.Text:=FloatToStr(BeamLength);
+  edtLoad.Text:=FloatToStr(BeamLoad);
+  cboMaterial.ItemIndex:=BeamProp-1;
+end;
+\end{lstlisting}
+
+Rutinen \pmethod{GetData} hämtar data från kontrollerna och lagrar
+dessa i \punit{BeamModel}.
+
+\begin{lstlisting}
+procedure TfrmBeamProps.GetData;
+var
+    BeamLength : double;
+    BeamLoad : double;
+    BeamProp : integer;
+begin
+  BeamLength:=StrToFloat(edtLength.Text);
+  BeamLoad:=StrToFloat(edtLoad.Text);
+  BeamProp:=cboMaterial.ItemIndex+1;
+  BeamModel.SetBeam(FCurrentBeam, BeamLength, BeamLoad,
+                    BeamProp);
+end;
+\end{lstlisting}
+
+För att fylla kontrollerna när formuläret visas har kod kopplats
+till händelsen \pprop{OnShow} vilken anropas precis innan
+formuläret skall visas. I denna händelse anropas först
+\pmethod{FillListBoxes} för att fylla combobox-kontrollerna och
+därefter \pmethod{SetData} för att fylla övriga textrutor.
+
+\begin{lstlisting}
+procedure TfrmBeamProps.FormShow(Sender: TObject);
+begin
+  FillListBoxes;
+  SetData;
+end;
+\end{lstlisting}
+
+Användaren byter aktuellt balksegment genom att välja i listan för
+kontrollen \pobject{cboSegment}. För att fånga upp detta har kod
+kopplats till kontrollens \pprop{OnChange} händelse. I denna
+hämtas först aktuella data med \pmethod{GetData} för att lagras i
+\punit{BeamModel}. Därefter anropas \pmethod{SetData} för att
+fylla kontrollerna med data från det valda balksegmentet.
+
+\begin{lstlisting}
+procedure TfrmBeamProps.cboSegmentChange(Sender: TObject);
+begin
+  GetData;
+  SetData;
+end;
+\end{lstlisting}
+
+Vid stängning av formuläret med \pobject{btnClose} eller genom att
+klicka på krysset i övre hörnet, måste aktuella data i
+kontrollerna också sparas till \punit{BeamModel}. Detta görs
+genom att koppla kod till händelsen \pprop{OnClose}, vilket
+anropas innan formuläret skall stängas. Händelsen anropar då
+\pmethod{GetData} för att hämta data från kontrollerna. Därefter
+tilldelas variabeln \pvar{Action} \ptype{caHide} för att
+bekräfta stängningen.
+
+\begin{lstlisting}
+procedure TfrmBeamProps.FormClose(Sender: TObject;
+  var Action: TCloseAction);
+begin
+  GetData;
+  Action:=caHide;
+end;
+\end{lstlisting}
+
+För att visa formuläret på skärmen måste händelsen
+\pprop{actProperties} i huvudformuläret implementeras. I
+händelsen visas formuläret i modalt läge, vilket innebär att
+användaren endast får tillgång till detta fönster och att
+huvudformuläret låses. När användaren stängt formuläret återgår
+programkörningen till den anropande funktionen. Koden för
+händelsen visas nedan.
+
+\begin{lstlisting}
+procedure TfrmMain.actPropertiesExecute(Sender: TObject);
+begin
+  frmBeamProps.ShowModal;
+  FDirty:=true;
+  Self.Invalidate;
+end;
+\end{lstlisting}
+
+När formuläret visas sätt \pvar{FDirty} till \pkeyw{true} för
+att förhindra att inaktuella resultat visas. Formuläret ritas
+också om.
+
+%---------------------------------------------------------------------
+\subsection{Materialformulär}
+%---------------------------------------------------------------------
+
+I materialformuläret kan en lista av material- och tvärsnittsdata
+redigeras. Här finns också knappar för att lägga till och ta bort
+data i listan.
+
+\fignormal{kompendiumv4Fig193.eps}{Materialformulär}{fig:material_window}
+
+Formuläret fungerar på samma sätt som balkegenskapsformuläret med
+metoderna \pmethod{SetData, GetData} och \pmethod{FillListBoxes}
+för att fylla kontrollerna. Det som skiljer är knapparna för att
+lägga till och ta bort material. För att lägga till ett material
+används rutinen \pmethod{BeamModel.AddMaterial} i
+\punit{BeamModel}, därefter uppdateras listboxen med de nya
+materialet. För att användaren direkt skall kunna redigera
+materialet sätts aktuellt material i listboxen till den sista
+positionen. Därefter anropas \pmethod{SetData} för att fylla
+kontrollerna med aktuellt material. Koden för Lägg till visas
+nedan.
+
+\begin{lstlisting}
+procedure TfrmMaterials.btnAddClick(Sender: TObject);
+begin
+  BeamModel.AddMaterial(1, 1, 1);
+  FillListBoxes;
+  FCurrentMaterial:=BeamModel.GetNumberOfMaterials;
+  lbMaterials.ItemIndex:=FCurrentMaterial-1;
+  SetData;
+end;
+\end{lstlisting}
+
+Lägg märke till att \pprop{lbMaterials.ItemIndex} har lägsta
+index 0 och \punit{BeamModel}:s index alltid börjar på 1, varför
+1 dras ifrån \pvar{FCurrentMaterial}.
+
+För att ta bort ett material används
+\pmethod{BeamModel.RemoveMaterial}. Denna rutin ta bort ett
+material på givet index. Material efter aktuellt index flyttas upp
+ett steg. Koden för denna händelse visas nedan.
+
+\begin{lstlisting}
+procedure TfrmMaterials.btnRemoveClick(Sender: TObject);
+begin
+  BeamModel.RemoveMaterial(lbMaterials.ItemIndex+1);
+  FillListBoxes;
+  FCurrentMaterial:=1;
+  SetData;
+end;
+\end{lstlisting}
+
+Visning av formuläret sker på samma sätt som för
+balkegenskapsformuläret genom att implementera en händelse i
+huvudformuläret. I detta fall \pprop{actMaterials}.
+
+%---------------------------------------------------------------------
+\subsection{Randvillkorsformulär}
+%---------------------------------------------------------------------
+
+I randvillkorsformuläret kan förskjutningar föreskrivas för alla
+noder i den kontinuerliga balken.
+
+\figmedium{kompendiumv4Fig194.eps}{Randvillkorsformulär}{fig:bc_window}
+
+Detta formulär är uppbyggt på samma sätt som
+balkegenskapsformuläret med \pmethod{SetData}, \pmethod{GetData}
+och \pmethod{FillListBoxes}. Formuläret använder metoderna
+\pmethod{BeamModel.SetBC} och \pmethod{BeamModel.GetBC} för att
+manipulera randvillkoren definierade i \punit{BeamModel}.
+
+Visning av formuläret sker på samma sätt som för
+balkegenskapsformuläret genom att implementera en händelse i
+huvudformuläret. I detta fall \pprop{actBC}.\\
+
+%---------------------------------------------------------------------
+\subsection{Resultatformulär}
+%---------------------------------------------------------------------
+
+Resultatformuläret visar en tabell med beräkningsresultatet för
+varje balksegment. Växling mellan balksegmenten kan ske med hjälp
+av combobox-kontrollen längst upp på formuläret.
+
+\fignormal{kompendiumv4Fig195.eps}{Resultatformulär}{fig:result_window}
+
+Hanteringen av formuläret sker med två metoder
+\pmethod{FillListBoxes}, \pmethod{FillGrid} och variabeln
+\pvar{FCurrentBeam}. Den sista variabeln anger vilket balksegment
+som skall visas. \pmethod{FillListBoxes} fyller kontrollen
+\pobject{cboBeam} med aktuellt antal balkar. \pmethod{FillGrid}
+fyller tabellen med värden enligt kod nedan.
+
+\begin{lstlisting}
+procedure TfrmResults.FillGrid;
+var
+    i : integer;
+    BeamLength : double;
+    BeamLoad : double;
+    BeamProp : integer;
+begin
+  stgrResults.Cells[0,0]:='x (m)';
+  stgrResults.Cells[1,0]:='Moment (Nm)';
+  stgrResults.Cells[2,0]:='Tvärkraft (N)';
+  stgrResults.Cells[3,0]:='Deform. (m)';
+
+  FCurrentBeam:=cboBeam.ItemIndex+1;
+
+  BeamModel.GetBeam(FCurrentBeam, BeamLength, BeamLoad,
+                    BeamProp);
+
+  for i:=1 to MaxEvaluationPoints do
+  begin
+
+    stgrResults.Cells[0,i]:=
+      format('%.4g',
+        [(BeamLength/(MaxEvaluationPoints-1))*(i-1)]);
+
+    stgrResults.Cells[1,i]:=
+      format('%.4g',[BeamModel.GetMoment(FCurrentBeam,i)]);
+
+    stgrResults.Cells[2,i]:=
+      format('%.4g',
+        [BeamModel.GetShearForce(FCurrentBeam,i)]);
+
+    stgrResults.Cells[3,i]:=
+      format('%.4g',
+        [BeamModel.GetDeflection(FCurrentBeam,i)]);
+  end;
+end;
+\end{lstlisting}
+
+Visning av formuläret sker på samma sätt som för
+balkegenskapsformuläret genom att implementera en händelse i
+huvudformuläret. I detta fall \pprop{actResults}.
+
+%---------------------------------------------------------------------
+\subsection{Det färdiga programmet}
+%---------------------------------------------------------------------
+
+Ett nästan komplett beräkningsprogram har nu tagits fram.
+Figur~\ref{fig:finished_application} visar det färdiga
+användargränssnittet. Figuren ovan visar också hur verktygsfälten
+kan dras loss och placeras på godtycklig plats på skärmen, samt
+vilka typer av resultat, som kan erhållas.
+
+Programmet är givetvis inte färdigimplementerat. Det saknas ett
+antal delar för att det skall bli användbart. Nedan listas en del
+förslag till utökningar:
+
+\begin{xlist}
+\item Felhantering. \\
+\item Beräkning av max/min-värden och visning av dessa i den grafiska redovisningen. \\
+\item Punktlaster. \\
+\item Utskrift av beräkningsrapport till skrivare. \\
+\item Installationsprogram. \\
+\item Lastfallshantering. \\
+\end{xlist}
+
+\fignormal{kompendiumv4Fig196.eps}{Program för beräkning av
+kontinuerliga balkar}{fig:finished_application}
+
+\clearpage

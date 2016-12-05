@@ -1,0 +1,1 @@
+add_executable(submodules main.f90 points.f90 points_a.f90)

@@ -1,0 +1,95 @@
+%---------------------------------------------------------------------
+%---------------------------------------------------------------------
+\chapter{Photran (in progress)}
+%---------------------------------------------------------------------
+%---------------------------------------------------------------------
+
+Photran is a integrated development environment, IDE, for
+Fortran based on the Eclipse-project. The user interface
+resembles the one found in commercial alternatives such as
+Microsoft Visual Studio or Absoft Fortran. This chapter gives a
+short introduction on how to get started with this development
+enviroment
+
+\section{Starting Photran}
+
+Photran is started by choosing ''Programs/Fortran Python
+Software Pack/Photran IDE'' in the start-menu in Windows. When
+Photran has been started a dialog is shown asking for a location of a workspace directory, see
+figure~\ref{fig:ph_select_workspace}. A workspace is a
+directory containing Photran configuration and project files.
+If the checkbox, \menuitem{Use this as the default...}, is
+checked this question will not appear the next time Photran is
+started, the selected workspace will be used by default.
+
+\figmedium{photran/photran001.png}{Choice of workspace
+directory}{fig:ph_select_workspace}
+
+When Photran is started for the first time, a welcome screen is shown. This screen will not be used in this chapter. Click on
+
+\fignc{0.1\textwidth}{ph_photran_start2}{}
+
+\noindent to show Photran's normal user interface layout, as
+shown in figure~\ref{fig:photran_default_layout}
+
+\figmedium{photran/photran004.png}{Photran default interface layout}{fig:photran_default_layout}
+
+\section{Creating a Photran Makefile project}
+
+The Photran IDE is centered around projects. This means that
+source files and build files are added to projects which
+Photran are maintained by Photran. Unfortunately, Photran does
+not have as advanced project management features as its parent
+project Eclipse. Photran can't generate makefiles automatically from the source files contained in the project. To solve this
+the Fortran Python Software Pack comes with a Fortran Make File Generator that generates a Makefile from files located in the
+project directory. The following example shows how to create
+and configure a Makefile project in Photran.
+
+First a new project is created in Photran by selecting
+\menuitem{File/New/Ohter}. This brings up a dialog listing the
+available project types in Photran, see
+figure~\ref{fig:photran_project_types}.
+
+\figmedium{photran/photran006.png}{Project
+type}{fig:photran_project_types}
+
+\noindent Select \menuitem{Fortran/Fortran Project} in the list shown. Click \button{Next}.
+
+In the next page, figure~\ref{fig:photran_project_type_and_name}, enter the name of the project and select the ''Makefile project'' in the ''Project type'' list.
+
+\figmedium{photran/photran007.png}{Project name and type}{fig:photran_project_type_and_name}
+
+\noindent To be able to build a project a toolchain must be selected. A toolchain is set of tools and compilers that is used to build a project. Linux user can choose ''Linux GCC'' or ''GCC Toolchain''. On Windows the toolchains ''GCC Toolchain'', ''MinGW GCC'' or ''Cygwin GCC'' can be selected depending on the tools installed. If the Fortran Python Software Pack is installed ''MinGW GCC'' must be chosen for Windows. Windows users should uncheck the box ''Show project types and toolchains only if they are supported on the platform.''. This will show all available toolchains even if Photran can't detect them. Click \button{Next} to go to the last configuration page. In this step an error parser must be configured in the advanced settings. Click on \button{Advanced Settings...}. This brings up the advanced configuration dialog. Select \menuitem{Fortran Build/Settings}. In the \guitab{Binary Parsers} parsers for different executable formats can be selected, see figure~\ref{fig:binary_parsers}.
+
+\figsmall{photran/photran009.png}{Binary parser configuration}{fig:binary_parsers}
+
+On Windows the ''PE Windows Parser'' should be selected. On Linux the ''Elf Parser'' should be selected. In the \guitab{Error Parsers}, see figure~\ref{fig:error_parsers}, parsers for compiler error messages can be selected. The closest match for the gfortran compiler is the ''Fortran Error Parser for G95 Fortran'' selection.
+
+\figmedium{photran/photran010.png}{Error parser configuration}{fig:error_parsers}
+
+Click \button{OK} to save the settings and close the advanced settings dialog. The project is now ready to be created. Click \button{Finish} to create the project. Before the project is saved Photran shows a dialog with the option of switching to the Fortran Perspective, see figure~\ref{fig:fortran_perspective}.
+
+\figmedium{photran/photran011.png}{Switching to Fortran Perspective}{fig:fortran_perspective}
+
+\noindent A perspective in Photran is a pre-configured layout of the development environment. Photran comes with a Fortran perspective and a Fortran Debug perspective used when debugging Fortran applications.
+
+\subsection{Adding a new source file}
+
+A new source file is added to the project by selecting \menuitem{File/New/Other} and selecting ''Source File'' from the Fortran Folder. Click \button{Next}. In the next page the name of the source file is entered. Click \button{Finish} to create the file and add it to the project.
+
+\section{Building the project}
+
+When all source files have been added to the project it can be built from the \menuitem{Project/Build All...} menu. This will execute the build process. Output from the process can be seen in the \guitab{Console} tab in the lower pane of the Photran window, as shown in figure~\ref{fig:build_process_output}.
+
+\figmedium{photran/photran_build_process001.png}{Output from the build process}{fig:build_process_output}
+
+Any errors in the build process are also shown in this tab.
+
+\section{Running the project}
+
+When the project has been built successfully it can be run by selecting \menuitem{Run/Run} from the menu. Output from the program is redirected to the \guitab{Console} in the lower part of the window, as shown in figure~\ref{fig:output_from_program}.
+
+\figmedium{photran/photran_running_project002.png}{Output from running program}{fig:output_from_program}
+
+
+

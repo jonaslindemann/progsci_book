@@ -1,0 +1,419 @@
+% --------------------------------------------------------------------
+\section{Make}
+% --------------------------------------------------------------------
+
+Make is a tool that can build software according to special rules defined in a makefile. Make automatically handles dependencies between source files and only rebuilds parts of the software that are affected by the change.
+
+A makefile consists of a series of rules, dependencies and actions. The general syntax for a makefile is:
+
+\begin{msyntax}
+target: [dependencies]\\
+\ftab system command
+\end{msyntax}
+
+A simple rule to compress a file, myfile.txt, is shown below:
+
+\mmode
+
+\begin{lstlisting}
+myfile.gz: myfile.txt
+	cat myfile.txt | gzip > myfile.gz
+\end{lstlisting}
+
+In this example a rule, \mfname{myfile.gz}, is created to compress the file. The rule depends on the file, \mfname{myfile.txt}. The action for compressing the file is shown in the second row. When you run the make command in the directory the following output is shown:
+
+\cmdmode
+
+\begin{lstlisting}
+$ ls
+Makefile	myfile.txt
+$ make
+cat myfile.txt | gzip > myfile.gz
+$ ls
+Makefile	myfile.gz	myfile.txt
+\end{lstlisting} 
+
+If make is run again it will recognise that the \mfname{myfile.txt} has not been changed and not execute the action again.
+
+\begin{lstlisting}
+$ make
+make: 'myfile.gz' is up to date.
+\end{lstlisting}
+
+If the \mfname{myfile.txt} is changed, make will recognise this and run the specified action again.
+
+\begin{lstlisting}
+$ touch myfile.txt
+$ make
+cat myfile.txt | gzip > myfile.gz
+$ 
+\end{lstlisting}
+
+% --------------------------------------------------------------------
+\subsection{Compiling code with make}
+% --------------------------------------------------------------------
+
+Using these rules a build system for compiling source code can be implemented. To compile a simple Fortran application the are some steps that needs to be done:
+
+\begin{enumerate}
+\item Compile the source files to an object files (.o).
+\item Link the object files to an executable.
+\end{enumerate}
+
+For a single source file 2 rules are needed. One rule for compiling the source file to an object file and one rule for linking the object file to an executable. A simple makefile for a single source file application is shown below:
+
+\mmode
+
+\begin{lstlisting}
+myprog: myprog.o 
+	gfortran myprog.o -o myprog
+
+myprog.o: myprog.f90 
+	gfortran -c myprog.f90
+\end{lstlisting}
+
+In the above example the executable, \mfname{myprog}, depends on the object file \mfname{myprog.o}. The second rule defines how the object file \mfname{myprog.o} is created from the source file, \mfname{myprog.f90}, which is also listed as a dependency for the rule. Running make on this makefile produces the following output:
+
+\cmdmode
+
+\begin{lstlisting}
+$ ls
+Makefile	myprog.f90
+$ make
+gfortran -c myprog.f90
+gfortran myprog.o -o myprog
+\end{lstlisting}
+
+Make first creates the \mfname{myprog.o} object file as this is a dependency for the creating the \mfname{myprog} executable. Next, the executable, \mfname{myprog}, is created by using the gfortran compiler to create an executable from the object file. When running make again, make will check for modifications and only execute actions if necessary. 
+
+Using make on a single source file is perhaps not the most useful thing. However, when compiling multiple files using make becomes more useful. To extend our above example to multiple source files we add the needed dependencies to the rule for building the executable, \mfname{myprog}. We also need an additional rule for building our additional sourcefile, \mfname{mymodule.f90}.
+
+\mmode
+
+\begin{lstlisting}
+myprog: myprog.o mymodule.o
+	gfortran myprog.o mymodule.o -o myprog
+
+myprog.o: myprog.f90 
+	gfortran -c myprog.f90
+
+mymodule.o: mymodule.f90
+	gfortran -c mymodule.f90
+\end{lstlisting}
+
+The interesting happens when the \mfname{mymodule.f90} file is updated:
+
+\cmdmode
+
+\begin{lstlisting}
+$ touch mymodule.f90 
+$ make
+gfortran -c mymodule.f90
+gfortran myprog.o mymodule.o -o myprog
+\end{lstlisting}
+
+Make detects the change in the \mfname{mymodule.f90} file and only compiles this file. As the \mfname{myprog.f90} was not updated the existing object file can be reused. This is why it is a good idea to use make in large projects. Modifying a single source file in a large application will only rebuild what is needed to satisfy the dependencies.
+
+% --------------------------------------------------------------------
+\subsection{Fortran 90 Module dependencies}
+% --------------------------------------------------------------------
+
+One problem compiling Fortran 90 code and modules is module dependencies. When compiling a module the compiler creates \mfname{.mod}-files which can be compared to automatically generated header files in C. When compiling a module which uses another module the used module must be compiled first, so that the \mfname{.mod}-file is available for the compiler. 
+
+In the following exaple we have a module, \mfname{module\_main.f90}, which uses \mfname{module\_truss.f90}. If we update the previous makefile we get the following makefile:
+
+\mmode
+
+\begin{lstlisting}
+myprog: module_main.o module_truss.o
+	gfortran module_main.o module_truss.o -o myprog
+
+module_main.o: module_main.f90
+	gfortran -c module_main.f90
+
+module_truss.o: module_truss.f90
+	gfortran -c module_truss.f90
+\end{lstlisting}
+
+Running make produces the following output:
+
+\cmdmode
+
+\begin{lstlisting}
+$ make
+module_main.f90:3.5:
+
+ use truss
+     1
+Fatal Error: Can't open module file 'truss.mod' for reading at (1): No such file or directory
+make: *** [module_main.o] Error 1
+\end{lstlisting}
+
+The compiler complains that it is missing the \mfname{.mod}-file, \mfname{truss.mod}, to be able to compile main module. To solve this an additional dependency, \mfname{module\_truss.o}, is added to the \mfname{module\_main.o} build rule. This means that to build the \mfname{module\_main.o} file the \mfname{module\_truss.o} file must first be build. The updated make file is shown below:
+
+\mmode
+
+\begin{lstlisting}
+myprog: module_main.o module_truss.o
+	gfortran module_main.o module_truss.o -o myprog
+
+module_main.o: module_main.f90 module_truss.o
+	gfortran -c module_main.f90
+
+module_truss.o: module_truss.f90
+	gfortran -c module_truss.f90
+\end{lstlisting}
+
+Running make again will produce the desired results:
+
+\cmdmode
+
+\begin{lstlisting}
+$ make
+gfortran -c module_truss.f90
+gfortran -c module_main.f90
+gfortran module_main.o module_truss.o -o myprog
+\end{lstlisting}%$
+
+From the above output it can be seen that make figures out the dependencies and builds the \mfname{module\_truss.f90} first which produces the needed \mfname{truss.mod} which is needed when compiling the \mfname{module\_main.f90} file.
+
+% --------------------------------------------------------------------
+\subsection{Using variables in make}
+% --------------------------------------------------------------------
+
+To specify explicit commands in the make file rules can make the makefiles difficult to maintain. Too solve this, make supports variables in the same way as in normal bash-scripts. To use the value of a variable in the makefile, the name of the variable is enclosed in \mfname{\$(...)}. In the following example, the variable, \mvar{FC}, is used to specify which compiler that is going to be used. The compiler flags are specified in the \mvar{FFLAGS} variable and the name of the application binary is specified in the \mvar{EXECUTABLE} variable. In this example a special clean rule has been added to clean all build files generated when compiling the application. In the rule the \mvar{EXECUTABLE} is used to make the rule more generic. 
+
+\mmode
+
+\begin{lstlisting}
+FC=gfortran
+FFLAGS=-c
+EXECUTABLE=myprog
+
+$(EXECUTABLE): myprog.o mymodule.o
+	$(FC) myprog.o mymodule.o -o myprog
+
+myprog.o: myprog.f90 
+	$(FC) $(FFLAGS) myprog.f90
+
+mymodule.o: mymodule.f90
+	$(FC) $(FFLAGS) mymodule.f90
+	
+clean:
+	rm -rf *.o *.mod $(EXECUTABLE)
+\end{lstlisting}
+
+Running make produces the desired result, but with a more flexible make file.
+
+\cmdmode
+
+\begin{lstlisting}
+$ make
+gfortran -c myprog.f90
+gfortran -c mymodule.f90
+gfortran myprog.o mymodule.o -o myprog
+\end{lstlisting}
+
+% --------------------------------------------------------------------
+\subsection{Internal macros}
+% --------------------------------------------------------------------
+
+To create even more generic makefiles and rules, make also has some useful internal macros that can be used. The most important internal macros are:
+
+\begin{center}
+\begin{tabular}{ ll }
+  \verb|$@| & The target of the current rule executed. \\
+  \verb|$^| & Name of all prerequisites \\
+  \verb|$<| & Name of the first prerequisite \\
+\end{tabular}
+\end{center}
+
+\mmode
+
+Using \verb|$^| and \verb|$@| a more generic build rule for linking our application can be created
+
+\begin{lstlisting}
+FC=gfortran
+FFLAGS=-c
+EXECUTABLE=myprog
+
+$(EXECUTABLE): myprog.o mymodule.o
+	$(FC) $^ -o $@
+...
+\end{lstlisting}
+
+Here, \verb|$^|, is used to list all prerequisites for this build, \mfname{mymodule.o myprog.o}. The \verb|$@|, denotes the current target as the output file for the compiler, in this case \mfname{\$(EXECUTABLE)} or \mfname{myprog}.
+
+The rules for compiling source code can also be updated in a similar way:
+
+\begin{lstlisting}
+...
+myprog.o: myprog.f90 
+	$(FC) $(FFLAGS) $< -o $@
+...
+\end{lstlisting}	
+
+Here the \verb|$<| variable denotes the first prerequisite, \mfname{myprog.f90}. The target macro, \verb|$@|, is also used to define the outputfile for the compiler.
+
+There are several more internal macros that can be used in makefiles. For more information please see the GNU Make documenation \cite{gnumake12}.
+
+% --------------------------------------------------------------------
+\subsection{Suffix rules}
+% --------------------------------------------------------------------
+
+If a project consists of a larger number of source files, a large number of rules must be written. Make, solves this by implementing so called explicit rules. These rules can be regarded as a recipy for how to go from one extension, \mfname{.f90} to another \mfname{.o}. A explicit rule for compiling a Fortran source file to an object file then becomes:
+
+\mmode
+
+\begin{lstlisting}
+FC=gfortran
+FFLAGS=-c
+EXECUTABLE=myprog
+
+...
+
+.f90.o:
+	$(FC) $(FFLAGS) $< -o $@
+\end{lstlisting}
+
+This rule eliminates all the compilation rules used in the previous sections and makes the makefile more compact. To make the explicit rules work for compiling Fortran code, make needs to now which suffixes are used for Fortran source code. This is done with the special rule \mvar{.SUFFIXES}. The following example shows the completed makefile with the suffix rule:
+
+\begin{lstlisting}
+FC=gfortran
+FFLAGS=-c
+EXECUTABLE=myprog
+
+$(EXECUTABLE): myprog.o mymodule.o
+	$(FC) $^ -o $@
+
+.f90.o:
+	$(FC) $(FFLAGS) $< -o $@
+	
+clean:
+	rm -rf *.o *.mod $(EXECUTABLE)
+
+.SUFFIXES: .f90 .f03 .f .F
+\end{lstlisting}
+
+% --------------------------------------------------------------------
+\subsection{Wildcard expansion and substitution}
+% --------------------------------------------------------------------
+
+Some times it can be beneficial to create lists of files by using wildcards. To do this in make, the \verb+$(wildcard ...)+ function can be used. To create a list of f90 source files the following assignment can be used:
+
+\mmode
+
+\begin{lstlisting}
+F90_FILES := $(wildcard *.f90)
+\end{lstlisting}
+
+Please note the \verb+:=+ assignment operator used in conjunction with make function calls. 
+
+When we have a list of source files, a list of object-files can easily be created by using the \mfunc{patsubst} function. This uses patterns to substitute the file suffixes from .f90 to .o. The assignment statement then becomes:
+
+\begin{lstlisting}
+OBJECTS := $(patsubst %.f90, %.o, $(F90_FILES))
+\end{lstlisting}
+
+The rule to link all object files into an executable then becomes:
+
+\begin{lstlisting}
+$(EXECUTABLE): $(OBJECTS)
+	$(FC) $^ -o $@
+\end{lstlisting}
+
+This a much more generic rule, which can be reused for other projects without any change.
+
+% --------------------------------------------------------------------
+\subsection{Pattern rules}
+% --------------------------------------------------------------------
+
+The suffix rules defined in the previous section are provided by GNU make for compatibility with older makefiles. The recommended way of implementing suffix rules is using so called pattern rules.
+
+A pattern rules specifies a ''Recipe'' for a rule that can handle multiple targets of a specific type. Using the \verb+%+ operator in the target specification to match filenames for which the generic rule will apply. A rule to compile Fortran source code to object files is written using pattern rules as follows:
+
+\begin{lstlisting}
+%.o: %.f90
+	$(FC) $(FFLAGS) $< -o $@
+\end{lstlisting}
+
+This defines a recipe for make how to create an object-file from a .f90 source file. This rule is implicitly used when make encounters an object-file (implicit pattern rule).
+
+The completed makefile with wildcards and pattern rules is shown below:
+
+\mmode
+
+\begin{lstlisting}
+FC=gfortran
+FFLAGS=-c
+EXECUTABLE=myprog
+
+F90_FILES := $(wildcard *.f90)
+OBJECTS := $(patsubst %.f90, %.o, $(F90_FILES))
+
+$(EXECUTABLE): $(OBJECTS)	
+	$(FC) $^ -o $@
+
+%.o: %.f90
+	$(FC) $(FFLAGS) $< -o $@
+	
+clean:
+	rm -rf *.o *.mod $(EXECUTABLE)
+\end{lstlisting}
+
+Please note that when using pattern rules the \mvar{.SUFFIXES} is not needed.
+
+Even if the described makefile automatically can compile all source files, dependencies between Fortran 90 modules are not handled. The easiest way of handling module dependencies are to explicitly express these dependencies in the make file. To illustrate this, consider the following example:
+
+\begin{description}
+\item[myprog.f90] Main fortran program. Uses the mymodule module located in the mymodule.f90 source file.
+\item[mymodule.f90] Module mymodule. Uses the myutils module in the myutils.f90 source file.
+\item[myutils.f90] Module myutils. Self contained module without dependencies.
+\end{description}
+
+To build this example, we need to build myutils.f90 first as the mymodule.f90 needs the myutils.mod file created when myutils.f90 is compiled. To enable this dependency an additional rule is added to our make file:
+
+\begin{lstlisting}
+mymodule.o: myutils.o
+\end{lstlisting}
+
+This tells make that the object-file mymodule.o depends on myutils.o and makes sure that it will be built first. If we update the makefile in the previous section to handle this it becomes:
+
+\mmode
+
+\begin{lstlisting}
+FC = gfortran
+FFLAGS = -c
+EXECUTABLE = myprog
+
+F90_FILES := $(wildcard *.f90)
+OBJECTS := $(patsubst %.f90, %.o, $(F90_FILES))
+
+$(EXECUTABLE): $(OBJECTS) $(MODFILES)
+	$(FC) $^ -o $@
+	
+mymodule.o: myutils.o
+
+%.o %.mod: %.f90
+	$(FC) $(FFLAGS) $< -o $@
+	
+clean:
+	rm -rf *.o *.mod $(EXECUTABLE)
+
+\end{lstlisting}
+
+When executing this makefile with make, myutils.f90, will be the first target to be built.
+
+\cmdmode
+
+\begin{lstlisting}
+$ make
+gfortran -c myutils.f90 -o myutils.o
+gfortran -c mymodule.f90 -o mymodule.o
+gfortran -c myprog.f90 -o myprog.o
+gfortran mymodule.o myprog.o myutils.o -o myprog
+\end{lstlisting}
+
+For more advanced make file use, the CMake tool is a better tool. CMake is covered in the next section.
+
+

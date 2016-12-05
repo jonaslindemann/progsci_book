@@ -1,0 +1,800 @@
+%---------------------------------------------------------------------
+%---------------------------------------------------------------------
+\chapter{Lösningar till övningsuppgifter} \label{app:solutions}
+%---------------------------------------------------------------------
+%---------------------------------------------------------------------
+
+\renewcommand{\excn}[1]{\textsf{\textbf{#1}}}
+
+%---------------------------------------------------------------------
+\section{Fortran}
+%---------------------------------------------------------------------
+
+\fmode
+
+%---------------------------------------------------------------------
+
+\begin{tabular}[t]{lp{0.8\textwidth}}
+\excn{1-1} & Endast a) är en korrekt Fortran variabel. b) innheåller
+mer än 31 tecken. c) börjar ej med en bokstav. d) innehåller ett
+icke-alfanumeriskt tecken. \\
+& \\
+\excn{1-2} & \vspace{-2em}
+\begin{lstlisting}
+integer :: a, b
+real(8) :: c, d, e
+character(255) :: infile
+character(255) :: outfile
+logical :: f
+\end{lstlisting}\\
+& \\
+\excn{1-3} & \vspace{-2em}
+\begin{lstlisting}
+integer, parameter :: ap = &
+    selected_real_kind(14,150)
+
+real(ap) :: a
+\end{lstlisting} \\
+& \\
+\excn{1-4} & ''Talen är olika.'' kommer att skrivas ut. Om inget
+annat anges representeras skalärkonstanter med 7 signifikanta
+siffror och kan ta värden i området $10^{-38}$ till $10^{38}$.
+Skalärkonstanten som tilldelas a i exemplet kommer ej att kunna
+representeras med mer än 7 signifikanta siffror. Skalären som
+tilldelas b är deklarerad med 15 signifikanta siffror med suffixet
+\ftype{ap} och kommer att kunna representera hela det angivna
+talet. Vid jämförelsen kommer variablerna \fvar{a} och \fvar{b}
+att innehålla olika värden, trots att \fvar{a} och \fvar{b} är deklarerade på samma sätt. \\
+& \\
+\end{tabular}
+
+%---------------------------------------------------------------------
+
+\begin{tabular}[t]{lp{0.8\textwidth}}
+\excn{1-5} & \vspace{-2em}
+\begin{lstlisting}
+integer, parameter :: ap = &
+    selected_real_kind(15,300)
+
+real(ap) :: Ke(3,3)
+real(ap) :: f(3)
+\end{lstlisting} \\
+& \\
+\excn{1-6} & \vspace{-2em}
+\begin{lstlisting}
+integer :: idx(0:7)
+\end{lstlisting} \\
+& \\
+\excn{1-7} & \vspace{-2em}
+\begin{lstlisting}
+1-7 A(2,3) = 5.0
+B = 0.0
+C(2,:) = 0
+\end{lstlisting} \\
+& \\
+\excn{1-8} & \vspace{-2em}
+\begin{lstlisting}
+if (i>100) then
+    write(*,*) 'i storre än hundra!'
+end if
+
+if (extra_fyllning) then
+    write(*,*) 'Extra fyllning beställd.'
+else
+    write(*,*) 'Ingen extra fyllning.'
+end if
+\end{lstlisting} \\
+& \\
+\excn{1-9} & \vspace{-2em}
+\begin{lstlisting}
+select case (a)
+    case 1
+        write(*,*) 'a är 1.'
+    case 2:20
+        write(*,*) 'a är mellan 2 och 20.'
+    case default
+        write(*,*) 'a är inte mellan 1 och 20.'
+end select
+\end{lstlisting} \\
+& \\
+\end{tabular}
+
+%---------------------------------------------------------------------
+
+\begin{tabular}[t]{lp{0.8\textwidth}}
+\excn{1-10} & \vspace{-2em}
+\begin{lstlisting}
+do i=1,20
+    if (i<6) then
+        write(*,*) i
+    else
+        write(*,*) 'i>5'
+    end if
+
+    if (i==15) then
+        break
+    end if
+end do
+\end{lstlisting} \\
+& \\
+\excn{1-11} & \vspace{-2em}
+\begin{lstlisting}
+integer, parameter :: ap = &
+    selected_real_kind(15,300)
+
+real(ap) :: I(10,10)
+integer :: row, col
+
+do row=1,10
+    do col=1,10
+        if (row==col) then
+            I(row,col) = 1.0
+        else
+            I(row,col) = 0.0
+        end if
+    end do
+end do
+\end{lstlisting} \\
+& \\
+\excn{1-12} & a) \fsol{1/sqrt(2.0\_ap)} \\
+& b) \fsol{exp(x)*sin(x)**2} \\
+& c) \fsol{sqrt(a**2 + b**2)} \\
+& d) \fsol{abs(x-y))} \\
+& \\
+\excn{1-13} & a) \fsol{matmul(A,B)  } \\
+& b) \fsol{matmul(transpose(A),A)} \\
+& c) \fsol{matmul(A,matmul(B,C))} \\
+& d) \fsol{dot\_product(a,b)} \\
+& \\
+\excn{1-14} & \vspace{-2em}
+\begin{lstlisting}
+b = maxval(A)
+c = minval(A)
+d = product(A)
+e = sum(A)
+\end{lstlisting} \\
+\end{tabular}
+
+%---------------------------------------------------------------------
+
+\begin{tabular}[t]{lp{0.8\textwidth}}
+\excn{1-15} & \vspace{-2em}
+\begin{lstlisting}
+integer, parameter :: ap = &
+    selected_real_kind(15,300)
+
+real(ap), allocatable :: A(:,:)
+real(ap), allocatable :: b(:)
+
+allocate(A(20,20))
+allocate(b(30))
+
+A = 0.0_ap
+b = 0.0_ap
+
+deallocate(A)
+deallocate(b)
+\end{lstlisting} \\
+& \\
+\excn{1-16} & \vspace{-2em}
+\begin{lstlisting}
+program subtest
+
+    integer, parameter :: ap = ...
+
+    real(ap) :: M(20,20)
+    call identity(M,20)
+    stop
+
+contains
+
+subroutine identity(A,n)
+
+    implicit none
+    integer, parameter :: ap = ...
+
+    real(ap) :: A(n,*)
+    integer :: row, col
+
+    do row=1,n
+        do col=1,n
+            if (row==col) then
+                A(row,col) = 1.0
+            else
+                A(row,col) = 0.0
+            end if
+        end do
+    end do
+
+    return
+
+end subroutine identity
+\end{lstlisting}\\
+\end{tabular}
+
+%---------------------------------------------------------------------
+
+\begin{tabular}[t]{lp{0.8\textwidth}}
+\excn{1-17} & \vspace{-2em}
+\begin{lstlisting}
+real function f(x)
+
+    implicit none
+
+    real(8) :: x
+
+    f = exp(x)*sin(x)**2
+
+    return
+
+end function f
+\end{lstlisting} \\
+& \\
+\excn{1-18} & \vspace{-2em}
+\begin{lstlisting}
+program exercise1_18
+
+    implicit none
+    integer, parameter :: ap = &
+        selected_real_kind(15,300)
+
+    real(ap) :: x
+    real(ap) :: f
+
+    write(*,'(T5,A,T21,A)') 'x','f(x)'
+
+    x = -1.0_ap
+    do while (x<1.05)
+        f = sin(x)
+        write(*,'(T4,F6.3,T20,F6.3)') x, f
+        x = x + 0.1_ap
+    end do
+
+    stop
+
+end program exercise1_18
+\end{lstlisting} \\
+\end{tabular}
+
+%---------------------------------------------------------------------
+
+\begin{tabular}[t]{lp{0.8\textwidth}}
+\excn{1-19} & \vspace{-2em}
+\begin{lstlisting}
+program exercise1_19
+
+    implicit none
+
+    integer, parameter :: ap = &
+        selected_real_kind(15,300)
+    integer, parameter :: linjeFil = 15
+    integer :: nPoints
+    integer :: i
+    real(ap) :: x, y, lastX, lastY
+    real(ap) :: summedLength
+
+    open(unit=linjeFil, file='linje.dat', &
+        access='sequential', &
+        action='read', status='old')
+
+    read(linjeFil,*) nPoints
+
+    summedLength = 0.0_ap
+
+    do i=1,nPoints
+        read(linjeFil,*) x, y
+
+        if (i>1) then
+            summedLength = summedLength + &
+                   sqrt((x-lastX)**2+(y-lastY)**2)
+        end if
+
+
+        lastX = x
+        lastY = y
+    end do
+
+    close(linjeFil)
+
+    write(*,'(T1,A,G15.3)') 'Total langd = ', &
+        summedLength
+
+end program exercise1_19
+\end{lstlisting}\\
+\end{tabular}
+
+%---------------------------------------------------------------------
+
+\begin{tabular}[t]{lp{0.8\textwidth}}
+\excn{1-20} & \vspace{-2em}
+\begin{lstlisting}
+program exercise1_20
+
+    implicit none
+
+    character(7) :: c1
+    character(2) :: c2
+    character(3) :: c3
+    character(15) :: c4
+
+    c1 = 'Fortran'
+    c2 = 'är'
+    c3 = 'kul'
+
+    c4 = c1//' '//c2//' '//c3
+
+    write(*,*) c4
+
+    stop
+
+end program exercise1_20
+\end{lstlisting} \\
+& \\
+\excn{1-21} & \vspace{-2em}
+\begin{lstlisting}
+program excercise1_21
+
+    implicit none
+    character(20) :: c
+    real(8) :: value
+
+    c = '2.0'
+    value = toReal(c)
+    write(*,*) value
+
+    stop
+
+contains
+
+real(8) function toReal(c)
+
+    implicit none
+    character(20), intent(in) :: c
+
+    read(c, *) toReal
+    return
+
+end function toReal
+
+end program excercise1_21
+\end{lstlisting} \\
+\end{tabular}
+
+%---------------------------------------------------------------------
+
+\begin{tabular}[t]{lp{0.8\textwidth}}
+\excn{1-22} & \vspace{-2em}
+\begin{lstlisting}
+module conversions
+
+    implicit none
+
+contains
+
+real(8) function toReal(c)
+
+    implicit none
+    character(20), intent(in) :: c
+    read(c, *) toReal
+    return
+
+end function toReal
+
+integer function toInteger(c)
+
+    implicit none
+    character(20), intent(in) :: c
+    read(c, *) toInteger
+    return
+
+end function toInteger
+
+end module conversions
+
+! ------------------------------
+
+program exercise2_22
+
+    use conversions
+
+    character(20) :: c
+    character(20) :: d
+    real(8) :: floatValue
+    integer :: intValue
+
+    c = '2.0'
+    d = '42'
+
+    floatValue = toReal(c)
+    intValue = toInteger(d)
+
+    write(*,*) floatValue
+    write(*,*) intValue
+
+    stop
+
+end program exercise2_22
+\end{lstlisting} \\
+\end{tabular}
+
+%%---------------------------------------------------------------------
+%\section{Object Pascal}
+%%---------------------------------------------------------------------
+%
+%\pmode
+%
+%\begin{tabular}[t]{lp{0.8\textwidth}}
+%\excn{2-1} & 2-1 a) och b) är korrekta namn på variabler i Object
+%Pascal. b) börjar med en siffra. c) innehåller ett icke
+%alfanumeriskt tecken. \\
+%& \\
+%\excn{2-2} & \vspace{-2em}
+%\begin{lstlisting}
+%a, b : integer;
+%c, d, e : double;
+%infile, outfile : string;
+%boolean : f;
+%\end{lstlisting} \\
+%& \\
+%\excn{2-3} & \vspace{-2em}
+%\begin{lstlisting}
+%if i>100 then
+%    writeln('i större än hundra!');
+%
+%if extra_fyllning then
+%    writeln('Extra fyllning beställd.')
+%else
+%    writeln('Ingen extra fyllning.');
+%\end{lstlisting} \\
+%& \\
+%\excn{2-4} & \vspace{-2em}
+%\begin{lstlisting}
+%case a of
+%    1     : writeln('a är 1');
+%    2..20 : writeln('a är mellan 2-20.');
+%else
+%    writeln('a är inte mellan 1 och 20.');
+%end;
+%\end{lstlisting} \\
+%& \\
+%\excn{2-5} & \vspace{-2em}
+%\begin{lstlisting}
+%for i:=1 to 20 do
+%begin
+%    if i>5 then
+%        writeln('i>5')
+%    else
+%        writeln(i);
+%end;
+%\end{lstlisting} \\
+%\end{tabular}
+%
+%%---------------------------------------------------------------------
+%
+%\begin{tabular}[t]{lp{0.8\textwidth}}
+%\excn{2-6} & \vspace{-2em}
+%\begin{lstlisting}
+%program exercise2_6b;
+%{$APPTYPE CONSOLE}
+%uses
+%    SysUtils;
+%
+%var
+%    I : array [1..10, 1..10] of double;
+%
+%    row, col : integer;
+%
+%begin
+%    for row:=1 to 10 do
+%        for col:=1 to 10 do
+%            if row=col then
+%                I[row,col]:=1.0
+%            else
+%                I[row,col]:=0.0;
+%end.
+%\end{lstlisting} \\
+%& \\
+%\excn{2-6} & \vspace{-2em}
+%\begin{lstlisting}
+%program exercise2_6b;
+%{$APPTYPE CONSOLE}
+%uses
+%    SysUtils;
+%
+%var
+%    I : array [1..10, 1..10] of double;
+%
+%    row, col : integer;
+%
+%begin
+%    for row:=1 to 10 do
+%        for col:=1 to 10 do
+%            if row=col then
+%                I[row,col]:=1.0
+%            else
+%                I[row,col]:=0.0;
+%end.
+%\end{lstlisting} \\
+%& \\
+%\excn{2-7} & a) \psol{1/Sqrt(2)} \\
+%& b) \psol{Exp(x)*Power(sin(x),2)} \\
+%& c) \psol{Sqrt(Power(a,2)+Power(b,2))} \\
+%& d) \psol{Abs(x-y)} \\
+%\end{tabular}
+%
+%%---------------------------------------------------------------------
+%
+%\begin{tabular}[t]{lp{0.8\textwidth}}
+%\excn{2-8} & \vspace{-2em}
+%\begin{lstlisting}
+%program exercise2_8;
+%{$APPTYPE CONSOLE}
+%uses
+%    SysUtils;
+%
+%var
+%    K : variant;
+%    f : variant;
+%
+%begin
+%    K:=VarArrayCreate([1,20,1,20], varDouble);
+%    f:=VarArrayCreate([1,20], varDouble);
+%
+%    // Use matrices
+%
+%    VarClear(K);
+%    VarClear(f);
+%end.
+%\end{lstlisting} \\
+%& \\
+%\excn{2-9} & \vspace{-2em}
+%\begin{lstlisting}
+%program exercise2_9;
+%{$APPTYPE CONSOLE}
+%uses
+%  SysUtils;
+%
+%procedure Identity(var A : variant; n : integer);
+%var
+%    i, j : integer;
+%begin
+%    for i:=1 to n do
+%        for j:=1 to n do
+%            if i=j then
+%                A[i,j]:=1.0
+%            else
+%                A[i,j]:=0.0;
+%end;
+%
+%procedure Print(var A : variant; n : integer);
+%var
+%        i, j : integer;
+%begin
+%    for i:=1 to n do
+%        for j:=1 to n do
+%            write(A[i,j],', ');
+%        writeln;
+%    end;
+%end;
+%\end{lstlisting} \\
+%\end{tabular}
+%
+%%---------------------------------------------------------------------
+%
+%\begin{tabular}[t]{lp{0.8\textwidth}}
+%\excn{2-9} ... & \vspace{-2em}
+%\begin{lstlisting}
+%var
+%    B : variant;
+%
+%begin
+%    B:=VarArrayCreate([1,10,1,10],varDouble);
+%    Identity(B,10);
+%    Print(B,10);
+%    VarClear(B);
+%end.
+%\end{lstlisting} \\
+%& \\
+%\excn{2-10} & \vspace{-2em}
+%\begin{lstlisting}
+%program exercise2_10;
+%{$APPTYPE CONSOLE}
+%uses
+%    SysUtils, Math;
+%
+%function f(x : double) : double;
+%begin
+%  Result:=Exp(x)*Power(sin(x),2);
+%end;
+%
+%begin
+%    writeln(f(1.0));
+%end.
+%\end{lstlisting} \\
+%& \\
+%\excn{2-11} & \vspace{-2em}
+%\begin{lstlisting}
+%program exercise2_11;
+%{$APPTYPE CONSOLE}
+%uses
+%  SysUtils,
+%  Math;
+%
+%function f(x : double) : double;
+%begin
+%    Result:=sin(x);
+%end;
+%
+%var
+%    x : double;
+%    dx : double;
+%
+%begin
+%    writeln('    x              f(x)');
+%\end{lstlisting} \\
+%& \\
+%\end{tabular}
+%
+%%---------------------------------------------------------------------
+%
+%\begin{tabular}[t]{lp{0.8\textwidth}}
+%\excn{2-11} ... & \vspace{-2em}
+%\begin{lstlisting}
+%    DecimalSeparator:='.';
+%    x:=-1.0;
+%    dx:=0.1;
+%    while x<1.05 do
+%    begin
+%        writeln(format('    %6.3f %6.3f',
+%            [x, sin(x)]));
+%        x:=x+dx;
+%    end;
+%    readln;
+%end.
+%\end{lstlisting} \\
+%& \\
+%\excn{2-12} & \vspace{-2em}
+%\begin{lstlisting}[escapechar=\%]
+%program exercise2_12;
+%{$APPTYPE CONSOLE}
+%uses
+%    SysUtils, Math;
+%var
+%    f : TextFile;
+%    nPoints, i : integer;
+%    x, y, LastX, LastY : double;
+%    SummedLength : double;
+%begin
+%
+%    AssignFile(f, 'linje.dat');
+%    Reset(f);
+%    readln(f,nPoints);
+%    SummedLength := 0.0;
+%
+%    for i:=1 to nPoints do
+%    begin
+%        readln(f, x, y);
+%        if i>1 then
+%        begin
+%            SummedLength:=SummedLength+
+%                Sqrt(Power(x-LastX,2)+Power(y-LastY,2));
+%        end;
+%
+%        LastX:=x;
+%        LastY:=y;
+%    end;
+%
+%    CloseFile(f);
+%
+%    writeln('Total l%ä%ngd', SummedLength);
+%    readln;
+%end.
+%\end{lstlisting} \\
+%\end{tabular}
+%
+%%---------------------------------------------------------------------
+%
+%\begin{tabular}[t]{lp{0.8\textwidth}}
+%\excn{2-13} & \vspace{-2em}
+%\begin{lstlisting}
+%program exercise2_13;
+%{$APPTYPE CONSOLE}
+%uses
+%  SysUtils;
+%
+%var
+%    c1, c2, c3, c4 : string;
+%
+%begin
+%    c1:='Object Pascal';
+%    c2:='är';
+%    c3:='kul';
+%    c4:=c1+' '+c2+' '+c3+'.';
+%    writeln(c4);
+%    readln;
+%end.
+%\end{lstlisting} \\
+%& \\
+%\excn{2-13} & \vspace{-2em}
+%\begin{lstlisting}
+%unit Matrix;
+%
+%interface
+%
+%procedure Identity(var A : variant; n : integer);
+%procedure Zero(var A : variant; n : integer);
+%procedure Transpose(var A : variant; n : integer);
+%
+%implementation
+%
+%procedure Identity(var A : variant; n : integer);
+%var
+%    i, j : integer;
+%begin
+%    for i:=1 to n do
+%        for j:=1 to n do
+%            if i=j then
+%                A[i,j]:=1.0
+%            else
+%                A[i,j]:=0.0;
+%end;
+%
+%procedure Zero(var A : variant; n : integer);
+%var
+%    i, j : integer;
+%begin
+%    for i:=1 to n do
+%        for j:=1 to n do
+%            A[i,j]:=0.0;
+%end;
+%\end{lstlisting} \\
+%\end{tabular}
+%
+%%---------------------------------------------------------------------
+%
+%\begin{tabular}[t]{lp{0.8\textwidth}}
+%\excn{2-13} ... & \vspace{-2em}
+%\begin{lstlisting}
+%procedure Transpose(var A : variant; n : integer);
+%var
+%    i, j : integer;
+%    B : variant;
+%begin
+%
+%    B:=VarArrayCreate([1,n,1,n], varDouble);
+%
+%    for i:=1 to n do
+%        for j:=1 to n do
+%            B[i,j]:=A[j,i];
+%
+%    for i:=1 to n do
+%        for j:=1 to n do
+%            A[i,j]:=B[i,j];
+%end;
+%
+%end.
+%\end{lstlisting} \\
+%
+%\excn{2-13} ... & \vspace{-2em}
+%\begin{lstlisting}[escapechar=\%]
+%%Huvudprogram%
+%
+%program exercise2_14;
+%{$APPTYPE CONSOLE}
+%uses
+%    SysUtils,
+%    Matrix in 'Matrix.pas';
+%
+%var
+%    A : variant;
+%
+%begin
+%    A:=VarArrayCreate([1,20,1,20], varDouble);
+%    Matrix.Zero(A,20);
+%    Matrix.Identity(A,20);
+%    Matrix.Transpose(A,20);
+%    VarClear(A);
+%end.
+%\end{lstlisting} \\
+%& \\
+%\end{tabular}

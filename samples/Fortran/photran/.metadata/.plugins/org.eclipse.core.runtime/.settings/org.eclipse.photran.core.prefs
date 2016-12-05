@@ -1,0 +1,10 @@
+eclipse.preferences.version=1
+integer.tabwidth=0
+rgb.comments=63,127,95
+rgb.cpp=128,128,128
+rgb.directives=180,100,50
+rgb.identifiers=0,0,192
+rgb.intrinsics=96,0,192
+rgb.keywords=127,0,85
+rgb.nums_punc=0,0,0
+rgb.strings=42,0,255
