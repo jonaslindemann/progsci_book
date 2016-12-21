@@ -12,3 +12,18 @@
 *.txt~
 
 
+
+.texpadtmp/
+_minted-sciprog/
+
+*.aux
+
+*.lof
+
+*.log
+
+*.out
+
+*.pdf
+
+*.toc

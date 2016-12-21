@@ -9,8 +9,13 @@
 \usepackage{palatino}
 \usepackage{MnSymbol}
 \usepackage{pifont}
+\usepackage{xcolor}
 %\usepackage{bookman}
 %\usepackage{times}
+%\usepackage{minted}
+\usepackage[cache=false,outputdir=.texpadtmp]{minted}
+
+\definecolor{mintedbackground}{rgb}{0.95,0.95,0.95}
 
 \usepackage{tikz}
 \usepackage{bbding}
@@ -101,6 +106,13 @@
 % ---------------------------------------------------------
 % ---- Syntaxhantering i Fortran
 % ---------------------------------------------------------
+
+\newenvironment{mintfor}
+{\begin{minted}[bgcolor=mintedbackground,baselinestretch=1.2,fontsize=\footnotesize,linenos]{python}}
+{\end{minted}}
+
+\newcommand{\mintforfile}[1]
+{\inputminted[bgcolor=mintedbackground,baselinestretch=1.2,fontsize=\footnotesize,linenos]{fortran}{#1}}
 
 \newenvironment{fsyntax}
 {\vspace{-6mm}\begin{quotation}\begin{sffamily}\begin{slshape}\noindent\flushleft}

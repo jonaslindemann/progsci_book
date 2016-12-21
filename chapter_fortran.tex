@@ -28,7 +28,8 @@ From the syntax it can be seen that the only identifier that must be included in
 
 The syntax for a subroutine and functions are defined in the same way, but the \fkeyw{program} identifier is replaced with \fkeyw{subroutine} or \fkeyw{function}. A proper way of organizing subroutines is to place these in separat files or place the in modules (covered in upcoming sections). Subroutines can also be placed in the main program \fkeyw{contains}-section, which is the preferred method if all subroutines are placed in the same source file. The code below shows a simple example of a main program with a subroutine in Fortran.
 
-\lstinputlisting{source/sample1/sample1.f90}
+\mintforfile{source/sample1/sample1.f90}
+%\lstinputlisting{source/sample1/sample1.f90}
 
 The program source code can contain upper and lower case letters, numbers and special characters. However, it should be noted that Fortran does not differentiate between upper and lower case letters. The program source is written starting from the first position with one statement on each line. If a row is terminated with the charachter \foper{\&}, this indicates that the statement is continued on the the next line. All text placed after the character \foper{!} is a comment and wont affect the function of the program. Even if the comments don't have any function in the program they are important for source code readability. This is especially important for future modification of the program. In addition to the source code
 form described above there is also the possibility of writing code in fixed form, as in Fortran 77 and earlier versions. In previous version of the Fortran standard this was the only source code form available.
@@ -83,7 +84,8 @@ type [[,attribute]... ::] entity-list
 \fexpr{type} defines the variable type and can be\ftype{integer}, \ftype{real}, \ftype{complex}, \ftype{logical}, \ftype{character}, or \ftype{type}( type-name ). \ftype{attribute} defines additional special attributes or how the variable is to be used. The following examples shows
 some typical Fortran variable declarations.
 
-\begin{lstlisting}[texcl]
+%\begin{lstlisting}[texcl]
+\begin{minted}{fortran}
 integer :: a     ! Scalar integer variable
 real :: b        ! Scalar floating point variable
 logical :: flag  ! boolean variable
@@ -97,7 +99,8 @@ character :: ch                 ! Character
 character, dimension(60) :: chv ! Array of characters
 character(len=80) :: line       ! Character string
 character(len=80) :: lines(60)  ! Array of strings
-\end{lstlisting}
+\end{minted}
+%\end{lstlisting}
 
 Constants are declared by specifying an additional keyword, \fkeyw{parameter}. A declared constant can be used in following variable declarations. An example of use is shown in the following example.
 

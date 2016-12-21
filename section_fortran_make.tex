@@ -315,7 +315,7 @@ When we have a list of source files, a list of object-files can easily be create
 OBJECTS := $(patsubst %.f90, %.o, $(F90_FILES))
 \end{lstlisting}
 
-The rule to link all object files into an executable then becomes:
+The rule to link all object files into an executable then becomes:
 
 \begin{lstlisting}
 $(EXECUTABLE): $(OBJECTS)
