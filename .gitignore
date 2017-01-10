@@ -27,3 +27,11 @@ _minted-sciprog/
 *.pdf
 
 *.toc
+*.bbl
+sciprog.blg
+*.gz
+*.exe
+*.mod
+source/submodules/points.smod
+*.smod
+*.json

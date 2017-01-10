@@ -13,13 +13,15 @@
 %\usepackage{bookman}
 %\usepackage{times}
 %\usepackage{minted}
-\usepackage[cache=false,outputdir=.texpadtmp]{minted}
+%\usepackage[cache=false,outputdir=.texpadtmp]{minted}
+\usepackage[cache=false]{minted}
 
 \definecolor{mintedbackground}{rgb}{0.95,0.95,0.95}
 
 \usepackage{tikz}
 \usepackage{bbding}
 \usepackage{ascii}
+\usepackage{mdframed}
 
 \hypersetup{
     bookmarks=true,         % show bookmarks bar?
@@ -50,6 +52,7 @@
 \renewcommand*\sfdefault{cmss}
 
 \definecolor{light-gray}{gray}{0.95}
+\definecolor{dark-gray}{gray}{0.60}
 
 % B5 bredd = 182mm hjd = 257mm
 
@@ -107,16 +110,84 @@
 % ---- Syntaxhantering i Fortran
 % ---------------------------------------------------------
 
-\newenvironment{mintfor}
-{\begin{minted}[bgcolor=mintedbackground,baselinestretch=1.2,fontsize=\footnotesize,linenos]{python}}
-{\end{minted}}
+\newmintedfile[fortrancode]{fortran}{
+	bgcolor=mintedbackground,
+	style=default,
+	baselinestretch=1.2,
+	fontsize=\footnotesize,
+	linenos=true,
+	numberblanklines=true,
+	numbersep=12pt,
+	numbersep=5pt,
+	gobble=0,
+	funcnamehighlighting=true,
+	tabsize=4,
+	obeytabs=false,
+	mathescape=false
+	samepage=true, %with this setting you can force the list to appear on the same page
+	showspaces=false,
+	showtabs =false,
+	texcl=false,
+	break=true
+}
+
+\newminted[fortrancodeenv]{fortran}{
+	style=default,
+	baselinestretch=1.2,
+	fontsize=\footnotesize,
+	linenos=false,
+	numberblanklines=true,
+	numbersep=12pt,
+	numbersep=5pt,
+	gobble=0,
+	funcnamehighlighting=true,
+	tabsize=4,
+	obeytabs=false,
+	mathescape=false,
+	samepage=true, %with this setting you can force the list to appear on the same page
+	showspaces=false,
+	showtabs =false,
+	texcl=true,
+	escapeinside=||
+}
+
+\mdfdefinestyle{fortstyle}{
+	userdefinedwidth=0.9\textwidth,
+	align=center,
+	backgroundcolor=mintedbackground,
+	topline=false,
+	leftline=false,
+	rightline=false,
+	bottomline=false,
+	skipbelow=1.3em,
+	skipabove=1.1em,
+}
+
+\mdfdefinestyle{fortsyntax}{
+	userdefinedwidth=0.9\textwidth,
+	align=center,
+	backgroundcolor=mintedbackground,
+	topline=false,
+	leftline=true,
+	rightline=false,
+	bottomline=false,
+	linewidth=5pt,
+	linecolor=dark-gray,
+	skipbelow=1.3em,
+	skipabove=1.1em
+}
+
+\surroundwithmdframed[style=fortstyle]{fortrancodeenv}
+\surroundwithmdframed[style=fortstyle]{fortrancode}
 
 \newcommand{\mintforfile}[1]
-{\inputminted[bgcolor=mintedbackground,baselinestretch=1.2,fontsize=\footnotesize,linenos]{fortran}{#1}}
+{\begin{quotation}\fortrancode{#1}\end{quotation}}
 
 \newenvironment{fsyntax}
-{\vspace{-6mm}\begin{quotation}\begin{sffamily}\begin{slshape}\noindent\flushleft}
-{\end{slshape}\end{sffamily}\end{quotation}}
+{\vspace{-1.5em}\begin{sffamily}\begin{slshape}\small \noindent\flushleft}
+{\end{slshape}\end{sffamily}}
+
+\surroundwithmdframed[style=fortsyntax]{fsyntax}
 
 % prebreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\rcurvearrowse\space}}
 

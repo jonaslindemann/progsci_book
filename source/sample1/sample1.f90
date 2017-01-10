@@ -11,7 +11,7 @@ program sample1
 	write(*,*) y
 	write(*,*) ap
 
-	call myproc(k)
+    call myproc(k)
 
 	write(*,*) k(1,1)
 
