@@ -110,7 +110,7 @@
 % ---- Syntaxhantering i Fortran
 % ---------------------------------------------------------
 
-\newmintedfile[fortrancode]{fortran}{
+\newmintedfile[mintforfile]{fortran}{
 	bgcolor=mintedbackground,
 	style=default,
 	baselinestretch=1.2,
@@ -124,11 +124,10 @@
 	tabsize=4,
 	obeytabs=false,
 	mathescape=false
-	samepage=true, %with this setting you can force the list to appear on the same page
+	samepage=false, %with this setting you can force the list to appear on the same page
 	showspaces=false,
 	showtabs =false,
-	texcl=false,
-	break=true
+	texcl=false
 }
 
 \newminted[fortrancodeenv]{fortran}{
@@ -178,10 +177,7 @@
 }
 
 \surroundwithmdframed[style=fortstyle]{fortrancodeenv}
-\surroundwithmdframed[style=fortstyle]{fortrancode}
-
-\newcommand{\mintforfile}[1]
-{\begin{quotation}\fortrancode{#1}\end{quotation}}
+\surroundwithmdframed[style=fortstyle]{mintforfile}
 
 \newenvironment{fsyntax}
 {\vspace{-1.5em}\begin{sffamily}\begin{slshape}\small \noindent\flushleft}
