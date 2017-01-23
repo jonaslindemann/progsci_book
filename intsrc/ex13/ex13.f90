@@ -1,4 +1,4 @@
-program ex12
+program ex13
 
     implicit none
 
@@ -10,5 +10,4 @@ program ex12
 
     call mysub(a, B, 10, 20, C, 30)
 
-
-end program ex12
+end program ex13

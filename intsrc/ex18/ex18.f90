@@ -1,4 +1,4 @@
-program ex17
+program ex18
 
     implicit none
 
@@ -16,4 +16,4 @@ program ex17
     deallocate(f)
     deallocate(K)
 
-end program ex17
+end program ex18

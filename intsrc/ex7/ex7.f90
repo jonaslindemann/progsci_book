@@ -1,4 +1,4 @@
-program ex5
+program ex7
 
     implicit none
 
@@ -16,4 +16,4 @@ program ex5
     print*, b
     print*, c
 
-end program ex5
+end program ex7

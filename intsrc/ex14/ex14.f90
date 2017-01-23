@@ -1,4 +1,4 @@
-program ex12
+program ex14
 
     use mymod
 
@@ -10,4 +10,4 @@ program ex12
 
     call mysub(a, B, C)
 
-end program ex12
+end program ex14

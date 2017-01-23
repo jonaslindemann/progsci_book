@@ -1,4 +1,4 @@
-program ex5
+program ex6
 
     implicit none
 
@@ -35,6 +35,4 @@ program ex5
     print*, 1/(2**3)
     print*, 2.0_rk**(-3.0_rk)
 
-
-
-end program ex5
+end program ex6

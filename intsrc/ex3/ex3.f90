@@ -1,4 +1,4 @@
-program ex2
+program ex3
 
     implicit none
 
@@ -15,4 +15,4 @@ program ex2
     B = reshape(A, (/8, 2/))
     C = reshape(A, (/2, 8/))
 
-end program ex2
+end program ex3
