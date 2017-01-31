@@ -7,4 +7,29 @@ program ex6
     real(rk) :: x, y
     real(rk) :: a, b, c
 
+    x = 3.0_rk
+    y = 4.0_rk
+
+    print*, x**-y !
+    print*, x**(-y)
+
+    a = 3.0_rk
+    b = 2.0_rk
+    c = 4.0_rk
+
+    print*, -a+b+c ! ((-a)+b)+c)
+    print*, -a+b*c ! ((-a)+(b*c))
+
+    print*, a**b**c ! a**(b**c)
+    print*, (a**b)**c
+
+    print*, 6/3
+    print*, 8/3
+    print*, -8/3
+
+    print*, 2**3
+    print*, 2**(-3) ! 1/(2**3)
+    print*, 2.0_rk**(-3.0_rk)
+
+
 end program ex6

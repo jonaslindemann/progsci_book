@@ -8,4 +8,6 @@ program ex12
     real(rk) :: B(10,20)
     real(rk) :: C(30)
 
+    call mysub(a, B, C)
+
 end program ex12

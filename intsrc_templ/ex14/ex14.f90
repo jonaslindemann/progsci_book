@@ -5,7 +5,9 @@ program ex14
     implicit none
 
     integer :: a
-    real(rk) :: B(10,20)
+    real(rk) :: B(20,20)
     real(rk) :: C(30)
+
+    call mysub(a, B, C)
 
 end program ex14
