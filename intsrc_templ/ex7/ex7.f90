@@ -8,4 +8,12 @@ program ex7
     real(rk) :: b
     integer  :: i, c
 
+    a = 0.5_rk
+    i = 5
+    b = a*i
+    c = a*i
+
+    print*, b
+    print*, c
+
 end program ex7

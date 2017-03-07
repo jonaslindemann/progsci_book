@@ -13,19 +13,20 @@ program ex21
     A = 42.0_rk
     B = 84.0_rk
 
-    call swap(A,B)
+    call swap(A, B)
 
     deallocate(A, B)
 
 contains
 
 elemental subroutine swap(a, b)
-    real(rk), intent(inout) :: a, b
+    real(rk), intent(out) :: a, b
     real(rk) :: work
 
     work = a
     a = b
     b = work
+
 end subroutine swap
 
 end program ex21

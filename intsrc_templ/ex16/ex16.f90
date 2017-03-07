@@ -13,9 +13,9 @@ program ex16
             end subroutine mysub
     end interface
 
-    integer  :: a
-    real(rk) :: B(20,30)
-    real(rk) :: C(40)
+    integer :: a
+    real(rk) :: B(10,20)
+    real(rk) :: C(30)
 
     call mysub(a, B, C)
 

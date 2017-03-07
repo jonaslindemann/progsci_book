@@ -1,0 +1,4 @@
+/home/bmjl/Development/progsci_book/exercises/mandelbrot/build/CMakeFiles/edit_cache.dir
+/home/bmjl/Development/progsci_book/exercises/mandelbrot/build/CMakeFiles/rebuild_cache.dir
+/home/bmjl/Development/progsci_book/exercises/mandelbrot/build/CMakeFiles/mandelutils.dir
+/home/bmjl/Development/progsci_book/exercises/mandelbrot/build/CMakeFiles/mandelbrot.dir

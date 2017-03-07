@@ -14,15 +14,15 @@ program ex10
 
     print*, v
 
-    select case(v)
+    select case (v)
     case (:-20)
-        print*, 'v <= -20'
+        print*, "v <= -1"
     case (0)
-        print*, 'v == 0.0'
+        print*, "v == 0"
     case (20:)
-        print*, 'v >=20'
+        print*, "v >=1"
     case default
-        print*, 'v is in the default range'
+        print*, "v is in the default range"
     end select
 
 end program ex10

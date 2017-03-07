@@ -3,7 +3,7 @@ program ex2
     implicit none
 
     integer, parameter :: rk = selected_real_kind(15,300)
-    integer, parameter :: ik = selected_int_kind(6)
+    integer, parameter :: ik = selected_real_kind(6)
 
     real(kind=rk) :: x
     real(rk) :: y

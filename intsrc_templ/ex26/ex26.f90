@@ -6,12 +6,14 @@ program ex26
 
     real(rk) :: A(20,10)
     real(rk) :: B(10,20)
-    real(rk) :: C(-10:10)
+    real(rk) :: C(-10:10) ! -10..10 = 21 elements
 
     print*, lbound(A)
     print*, ubound(A)
+
     print*, lbound(B)
     print*, ubound(B)
+
     print*, lbound(C)
     print*, ubound(C)
 

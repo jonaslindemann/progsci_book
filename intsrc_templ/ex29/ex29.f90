@@ -11,21 +11,22 @@ program ex29
 
     call printArray(A)
 
+
 contains
 
 subroutine printArray(A)
 
-    real(rk) :: A(:,:)
+    real(rk), dimension(:,:) :: A
     integer :: rows, cols, i, j
     character(255) :: fmt
 
     rows = size(A,1)
     cols = size(A,2)
 
-    write(fmt,'(A,I1,A)') '(',cols,'G10.3)'
+    write(fmt, '(A,I1,A)') '(',cols, 'G8.3)'
 
     do i=1,rows
-        write(*, fmt) (A(i,j), j=1,cols)
+            print fmt, (A(i,j), j=1,cols)
     end do
 
 end subroutine printArray

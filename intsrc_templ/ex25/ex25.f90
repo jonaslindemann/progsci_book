@@ -15,24 +15,31 @@ program ex25
 
     B = .true.
 
-    if (all(B).eqv. .true.) then
-        print*, 'All elements are true'
+    if (all(B) .eqv. .true.) then
+        print*, 'All elements are true.'
     else
         print*, 'Not all elements are true'
     end if
 
     B = .false.
-    !B(5,5) = .true.
 
     if (any(B) .eqv. .true.) then
-        print *, 'Some element sin B are true'
+        print*, 'Some of the elements in B are true'
     else
-        print*, 'None of the elements in b are true'
+        print*, 'None of the elements in B are true'
     end if
 
-    print*, maxval(A)
-    print*, minval(A)
-    print*, product(A)
-    print*, sum(A)
+    B(5,5) = .true.
+
+    if (any(B) .eqv. .true.) then
+        print*, 'Some of the elements in B are true'
+    else
+        print*, 'None of the elements in B are true'
+    end if
+
+    print*, 'Max value in A = ', maxval(A)
+    print*, 'Max value in A = ', minval(A)
+    print*, 'Product of A   = ', product(A)
+    print*, 'Sum of A       = ', sum(A)
 
 end program ex25

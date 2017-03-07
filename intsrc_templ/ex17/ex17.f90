@@ -11,6 +11,7 @@ program ex17
 contains
 
 subroutine mysub(A)
+
     real(rk) :: A(:,:)
     real(rk) :: B(size(A,2), size(A,1))
 
@@ -21,6 +22,7 @@ subroutine mysub(A)
 
     A = 42.0_rk
     B = 84.0_rk
+
 end subroutine mysub
 
 end program ex17

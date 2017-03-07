@@ -9,21 +9,19 @@ program ex9
     call initRand()
     call randVal(v1, 0.0_rk, 1.0_rk)
 
-    !if (v1>0.5_rk) then
-    !    v2 = 0.5_rk
-    !end if
+    !if (v1>0.5) then
+    !    v2 = 0.5
+    !endif
 
-    !if (v1>0.5) v2 = 0.5
-
-    !if (v1>0.5_rk) then
-    !    v2 = 0.5_rk
+    !if (v1>0.5) then
+    !    v2 = 0.5
     !else
     !    v2 = v1
-    !end if
+    !endif
 
-    if (v1>0.5_rk) then
+    if (v1>0.5) then
         v2 = 0.5
-    else if (v1<0.2_rk) then
+    else if (v1<0.2) then
         v2 = 0.2
     else
         v2 = v1
@@ -31,4 +29,5 @@ program ex9
 
     print*, v1
     print*, v2
+
 end program ex9

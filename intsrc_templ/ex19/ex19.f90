@@ -13,18 +13,18 @@ program ex19
     call randMat(A, 0.0_rk, 1.0_rk)
     call randMat(B, 0.0_rk, 1.0_rk)
 
-    where (A>0.8_rk) A=0.8_rk
+    where (A>0.8_rk) A = 0.8
 
     where (A<0.2_rk)
         A = 0.2_rk
     end where
 
-    where (B<0.5)
+    where (B<0.5_rk)
         B = 0.0_rk
     else where
         B = 1.0_rk
     end where
 
-    deallocate(A,B)
+    deallocate(A, B)
 
 end program ex19

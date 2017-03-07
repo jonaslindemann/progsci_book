@@ -6,9 +6,9 @@ program ex3
     integer :: B(8,2)
     integer :: C(2,8)
 
-    integer :: i, j
+    integer  :: i, j
 
-    do i=1,16
+    do i = 1, 16
         A(i) = i
     end do
 

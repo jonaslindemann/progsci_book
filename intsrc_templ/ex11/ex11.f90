@@ -6,23 +6,26 @@ program ex11
 
     integer :: i
 
-    do i = 1,10
+    do i = 1, 10
         print*, i
     end do
 
     print*, '----'
 
-    do i = 2,30,4
+    do i = 2, 30, 4
         print*, i
+        ! i = 3
     end do
 
-    do i=1,1000
+    print*, '----'
+
+    do i = 1, 1000
 
         if (i>50) then
-            print*, 'i>50 exiting'
+            print*, 'i>50, exiting'
             exit
         else if (i<20) then
-            print*, 'i<20 cycling'
+            print*, 'i<20, cycling'
             cycle
         end if
 

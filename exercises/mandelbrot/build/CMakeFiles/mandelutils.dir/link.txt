@@ -1,0 +1,2 @@
+/bin/ar qc libmandelutils.a  CMakeFiles/mandelutils.dir/types.f90.o CMakeFiles/mandelutils.dir/constants.f90.o CMakeFiles/mandelutils.dir/utils.f90.o CMakeFiles/mandelutils.dir/mesh.f90.o
+/bin/ranlib libmandelutils.a

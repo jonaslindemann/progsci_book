@@ -1,15 +1,15 @@
 program ex1
 
-    integer :: a
-    integer(kind=4) :: b
+    integer(kind=4)   :: a
+    integer(4)        :: b ! Short form
 
-    real(kind=8) :: c
-    real(8) :: d
+    real(kind=8)      :: c
+    real(8)           :: d ! Short form
 
     character(len=20) :: textstring
-    character :: t
-    character(20) :: textstring2
-    character(len=20, kind=1) :: textstring3
+    character         :: t
+    character(20)     :: textstring2
+    character(len=20, kind=1) :: textstring3     ! english string
 
     a = 4
     b = 5
@@ -18,12 +18,8 @@ program ex1
     e = 0.0_8
 
     t = 'a'
-    textstring = 'hello'
-    textstring2 = 'World'
+    textstring = 'Hello'
+    textstring2 = 'World!'
     textstring3 = 'English'
-
-    print*, a
-    print*, c
-    print*, textstring3
 
 end program ex1

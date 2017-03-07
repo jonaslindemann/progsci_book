@@ -10,9 +10,10 @@ program ex23
 
     call initRand()
     call randMat(A, -1.0_rk, 1.0_rk)
-    call printMatrix(A,'A')
+    call printMatrix(A, 'A')
 
     B = cos(A)
 
     call printMatrix(B, 'B')
+
 end program ex23
