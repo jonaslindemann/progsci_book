@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 enable_language(Fortran)
 
 set(USE_F2PY OFF)
+set(USE_LAPACK ON)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "6.0.0")
@@ -19,11 +20,11 @@ if(USE_F2PY)
         allocatable_dummy allocatable_function dynamic_fcodes pointers overloading
         case formatting modules namelist_io operator_overloading optional_arguments
         private_entities procedures_as_arguments strings submodules
-        subroutines sample1 sample2 zero_size logic functions f2py)
+        subroutines sample1 sample2 zero_size logic functions fea_code lapack f2py )
 else()
     subdirs(unformatted_io error_handling array_features oo_programming
         allocatable_dummy allocatable_function dynamic_fcodes pointers overloading
         case formatting modules namelist_io operator_overloading optional_arguments
         private_entities procedures_as_arguments strings submodules
-        subroutines sample1 sample2 zero_size logic functions)
+        subroutines sample1 sample2 zero_size logic functions lapack fea_code)
 endif()
