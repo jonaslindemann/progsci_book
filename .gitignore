@@ -37,3 +37,5 @@ sciprog.blg
 source/submodules/points.smod
 *.smod
 *.json
+*.zip
+*.synctex
