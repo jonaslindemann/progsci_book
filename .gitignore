@@ -39,3 +39,6 @@ source/submodules/points.smod
 *.json
 *.zip
 *.synctex
+*.bak
+*.fdb_latexmk
+*.fls

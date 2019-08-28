@@ -4,10 +4,10 @@
 %---------------------------------------------------------------------
 %---------------------------------------------------------------------
 
-Fortran was the first high-level language and was developed in the fifties. The languages has since the developed through a number of standards Fortran IV (1966), Fortran 77, Fortran 90, Fortran 95 and the latest Fortran 2003. The advantages with standardised languages is that the code can be run on different computer architectures without modification. In every new standard the language has been extended with more modern language elements. To be compatible with previous standards older language elements are not removed. However, language elements that are considered bad or outdated can be removed after 2 standard revisions. As an example Fortran 90 is fully backwards compatible with Fortran 77, but in Fortran 95 some
-older language constructs where removed. 
+Fortran was the first high-level language and was developed in the fifties. The languages has since the developed through a number of standards Fortran IV (1966), Fortran 77, Fortran 90, Fortran 95, Fortran 2003, Fortran 2008 and the latest Fortran 2018. The advantages with standardised languages is that the code can be run on different computer architectures without modification. In every new standard the language has been extended with more modern language elements. To be compatible with previous standards older language elements are not removed. However, language elements that are considered bad or outdated can be removed after 2 standard revisions. As an example Fortran 90 is fully backwards compatible with Fortran 77, but in Fortran 95 some
+older language constructs where removed.
 
-The following sections gives a short introduction to the Fortran 90 language and some of the extensions in Fortran 95. The description is centered on the most important language features. A more thorough description of the language can be found in the book Fortran 95/2003 Explained \cite{metcalf00}
+The following sections gives a short introduction to the modern Fortran language from Fortran 90 and above. The description is centered on the most important language features. A more thorough description of the language can be found in the book Modern Fortran Explained \cite{metcalf00}
 
 %---------------------------------------------------------------------
 \section{Program structure}
@@ -37,11 +37,21 @@ form described above there is also the possibility of writing code in fixed form
 \section{Variables}
 %---------------------------------------------------------------------
 
+Variables are named references to data stored in memory. When specifying variables in Fortran, the data type of the data must also be specified. This means that Fortran is a strongly typed language compared to Python where data types of variables can change during code execution. Python is a dynamically typed language.
+
+By default Fortran assumes that variables starting with letters I to N are assumed to be integers all other variables are assumed to be floating point variables (real). This is also called the implict type rule and is considered bad practice in Fortran, but is default because many Fortran programs are still relying on this rule. Modern Fortran application should always disable the implict type rule by adding the following statement in each code unit:
+
+\begin{fortrancodeenv}
+implicit none
+\end{fortrancodeenv}
+
+This is also described in more detail in the following sections.
+
 %---------------------------------------------------------------------
 \subsection{Naming of variables}
 %---------------------------------------------------------------------
 
-Variables in Fortran 95 consists of 1 to 31 alphanumeric characters (letters except   and , underscore and numbers). The first character of a variable name must be a letter. Allowable variable names can be:
+Variables in modern Fortran consists of 1 to 31 alphanumeric characters (letters except   and , underscore and numbers). The first character of a variable name must be a letter. Allowable variable names can be:
 
 \begin{fortrancodeenv}
 a
@@ -61,7 +71,7 @@ _       ! Contains a non-alphanumeric character
 \end{fortrancodeenv}
 
 %---------------------------------------------------------------------
-\subsection{Variable types and declarations}
+\subsection{Data types and declarations}
 %---------------------------------------------------------------------
 
 There are 5 built-in data types in Fortran:
@@ -85,7 +95,7 @@ some typical Fortran variable declarations.
 
 \begin{fortrancodeenv}
 integer :: a     ! Scalar integer variable
-real :: b        ! Scalar floating point variable
+real    :: b     ! Scalar floating point variable
 logical :: flag  ! boolean variable
 
 real :: D(10)    ! Floating point array consisting of 10 elements
@@ -99,7 +109,7 @@ character(len=80) :: line       ! Character string
 character(len=80) :: lines(60)  ! Array of strings
 \end{fortrancodeenv}
 
-Constants are declared by specifying an additional keyword, \fkeyw{parameter}. A declared constant can be used in following variable declarations. An example of use is shown in the following example.
+Constants are declared by specifying an additional attribute, \fkeyw{parameter}. A declared constant can be used in following variable declarations. An example of use is shown in the following example.
 
 \begin{fortrancodeenv}
 integer, parameter :: A = 5 ! Integer constant
@@ -108,7 +118,7 @@ real :: C(A)                ! Floating point array where
                             ! specified by A
 \end{fortrancodeenv}
 
-The precision and size of the variable type can be specified by adding a parenthesis directly after the type declaration. The variables \fvar{A} and \fvar{B} in the following example are declared as floating point scalars with different precisions. The number in the parenthesis denotes for many architectures, how many bytes a floating point variable is represented with.
+The precision and size of the variable type can be specified by adding a parenthesis directly after the type declaration. The variables \fvar{A} and \fvar{B} in the following example are declared as floating point scalars with different precisions. The number in the parenthesis denotes for many architectures, how many bytes a floating point variable is represented with. This is however not standardised and should not be relied upon.
 
 \begin{fortrancodeenv}
 real(8) :: A
@@ -119,7 +129,7 @@ integer(4) :: I
 To be able to choose the correct precision for a floating point variable, Fortran has a built in function \fkeyw{selected\_real\_kind} that returns the value to be used in the declaration with a given precision. This is illustrated in the following example.
 
 \begin{fortrancodeenv}
-integer, parameter :: ap = selected_real_kind(15,300)
+integer, parameter :: dp = selected_real_kind(15,300)
 real(kind=ap) :: X,Y
 \end{fortrancodeenv}
 
@@ -127,7 +137,7 @@ In this example the floating point variable should have at least 15 significant 
 specifying numbers in variable assignments as the following example illustrate.
 
 \begin{fortrancodeenv}
-X = 6.0_ap
+X = 6.0_dp
 \end{fortrancodeenv}
 
 The importance of specifying the precision for assigning scalar values to variables is illustrated in the following example.
@@ -137,11 +147,11 @@ program constants
 
     implicit none
 
-    integer, parameter :: ap = selected_real_kind(15,300)
+    integer, parameter :: dp = selected_real_kind(15,300)
 
-    real(ap) :: pi1, pi2
+    real(dp) :: pi1, pi2
     pi1 = 3.141592653589793
-    pi2 = 3.141592653589793_ap
+    pi2 = 3.141592653589793_dp
 
     write(*,*) 'pi1 = ', pi1
     write(*,*) 'pi2 = ', pi2
@@ -162,12 +172,12 @@ pi2 = 3.14159265358979
 
 \fmode
 
-The scalar number assigned to the variable \fvar{pi1} is chosen by the compiler to be represented by the least number of bytes floating point precision, in this case \ftype{real(4)}, which is shown in the output from the above program. 
+The scalar number assigned to the variable \fvar{pi1} is chosen by the compiler to be represented by the least number of bytes floating point precision, in this case \ftype{real(4)}, which is shown in the output from the above program.
 
-Variable declarations in Fortran always precedes the executable statements in the main program or in a subroutine. Declarations can also be placed directly after the \fkeyw{module} identifier in modules. 
+Variable declarations in Fortran always precedes the executable statements in the main program or in a subroutine. Declarations can also be placed directly after the \fkeyw{module} identifier in modules.
 
 %---------------------------------------------------------------------
-\subsection{General type rule}
+\subsection{Implicit type rule}
 %---------------------------------------------------------------------
 
 Variable do not have to be declared in Fortran. The default is that variables starting I, J,..., N are defined as \ftype{integer} and variables starting with A, B,... ,H or O, P,... , Z are defined as \ftype{real}. This kind of implicit variable declaration is not recommended as it can lead to programming errors when variables are misspelled. To avoid implicit variable declarations the following declaration can be placed first in a program or module:
@@ -184,7 +194,7 @@ This statement forces the compiler to make sure that all variables are declared.
 \subsection{Assignment of variables}
 %---------------------------------------------------------------------
 
-The syntax for scalar variable assignment is, 
+The syntax for scalar variable assignment is,
 
 \begin{fsyntax}
 variable = expr
@@ -193,7 +203,7 @@ variable = expr
 where \fvar{variable} denotes the variable to be assigned and \fexpr{expr} the expression to be assigned. The following example assign the \fvar{a} variable the value 5.0 with the precision defined in the constant \fkeyw{ap}.
 
 \begin{fortrancodeenv}
-a = 5.0_ap
+a = 5.0_dp
 \end{fortrancodeenv}
 
 Assignment of boolean variables are done in the same way using the keywords, \fkeyw{.false.} and \fkeyw{.true.} indicating a true or false value. A boolean expression can also be used int the assignment. In the following example the variable, \fvar{flag}, is assigned the value \fkeyw{.false.}.
@@ -202,7 +212,7 @@ Assignment of boolean variables are done in the same way using the keywords, \fk
 flag =.false.
 \end{fortrancodeenv}
 
-Assignment of strings are illustrated in the following example. 
+Assignment of strings are illustrated in the following example.
 
 \begin{fortrancodeenv}
 character(40) :: first_name
@@ -220,21 +230,94 @@ company_name2 = 'McDonald''s'
 
 The first variable, \fvar{first\_name}, is assigned the text ''Jan'', remaining characters in the string will be padded with spaces. A string is assigned using citation marks, '' or apostrophes, '. This can be of help when apostrophes or citation marks is used in strings as shown in the assignemnt of the variables, \fvar{company\_name1} och \fvar{company\_name2}.
 
-
 %---------------------------------------------------------------------
 \subsection{Defined and undefined variables}
 %---------------------------------------------------------------------
+
+A variable in Fortran that has been assigned a value is considered to be defined and can be used safely. Variables that are not assigned values are said to be undefined and should not be used.
+
+A program containing undefined variables will not fail compilation. Memory for undefined variables will be reserved and can be referenced. However, values of undefined variables are not automatically set to zero and references memory locations with unknown values. Often these variables will return garbage or random values. As rule always initialise variables to a default values or make sure they are assigned a value from another variable reference.
+
+The following example shows an example of referencing defined and undefined variables.
+
+\begin{fortrancodeenv}
+program undef1
+
+    implicit none
+
+    integer, parameter :: dp = selected_real_kind(15,300)
+
+    real(dp) :: a, b
+    character(40) :: s1, s2
+
+    a = 42.0_dp ! --- Defined
+    s1 = 'My defined string'
+
+    print*, a
+    print*, b
+    print*, s1
+    print*, s2
+
+end program undef1
+\end{fortrancodeenv}
+
+This will print the following:
+
+\begin{fortrancodeenv}
+   42.000000000000000
+   8.2890460584580950E-317
+ My defined string
+
+\end{fortrancodeenv}
+
+The reason for the 8.28...E-317 value is that the variable reference \fvar{b} points to its given memory location, but no value has been assigned to this location and will contain whatever was in memory when the program was executed. Fortran will interpret the values at this location as a floating point value and present it as such. This illustrates why it is a good idea to initialise variables to 0.0\_dp or make sure they will be assigned values from other variable references.
 
 %---------------------------------------------------------------------
 \subsection{Derived datatypes}
 %---------------------------------------------------------------------
 
-%---------------------------------------------------------------------
-\subsection{Determining appropriate types}
-%---------------------------------------------------------------------
+In certain cases it can be beneficial to create your own data types to handle the behavior of your program. To create new data types in Fortran you can create derived data types using the \fkeyw{type}-statement. Using this statement a new data type can be created by grouping existing Fortran data types into a new type. In the following example a data type of a particle is defined:
+
+\begin{fortrancodeenv}
+type particle
+    real(dp) :: x
+    real(dp) :: y
+    real(dp) :: z
+    real(dp) :: m
+end type particle
+\end{fortrancodeenv}
+
+The new data type can now be used like any other data type in Fortran. To create a variable reference to a derived data type the \fkeyw{type} keyword precedes the name of the data type in the declaration. As in the following example:
+
+\begin{fortrancodeenv}
+type(particle) :: p0
+\end{fortrancodeenv}
+
+The members of the derived data types are accessed using the \fkeyw{\%}-operator. In the following example the members of the variable \fvar{p0} are assigned values:
+
+\begin{fortrancodeenv}
+p0 % x = 0.0_dp
+p0 % y = 0.0_dp
+p0 % z = 0.0_dp
+p0 % m = 1.0_dp
+\end{fortrancodeenv}
+
+Derived data types can contain multiple Fortran data types:
+
+\begin{fortrancodeenv}
+type particle
+    real(dp)  :: x
+    real(dp)  :: y
+    real(dp)  :: z
+    real(dp)  :: m
+    logical   :: active
+    integer   :: id
+    character :: name(8)
+end type particle
+\end{fortrancodeenv}
 
 %---------------------------------------------------------------------
-\section{Operators}
+\section{Operators and expressions}
 %---------------------------------------------------------------------
 
 The following arithmetic operators are defined in Fortran:
@@ -289,15 +372,62 @@ c = (a+b)/2 ! in this case $(a+b)$ is evaluated and then $/$ 2
 \vspace{5mm}
 
 %---------------------------------------------------------------------
-\subsection{Expressions}
+\subsection{Numeric expressions}
 %---------------------------------------------------------------------
 
-Integer expressions.
+Numeric expressions in Fortran consist of operands of the built-in data types \fkeyw{integer}, \fkeyw{real} or \fkeyw{complex}.
 
-Mixed mode expressions
+If the operands only consists of integer it is important to note that integer divisions are rounded towards 0. The following example illustrates this:
 
-Array expressions?
+\begin{fortrancodeenv}
+program expr1
 
+    print*, 6/3
+    print*, 8/3   ! 2.6666... rounded down to 2
+    print*, -8/3  ! -2.666... rounded up to 2
+
+end program expr1
+\end{fortrancodeenv}
+
+Running the program will result in the following output:
+
+\begin{fortrancodeenv}
+           2
+           2
+          -2
+\end{fortrancodeenv}
+
+There are also some other things to be careful with when working with integer expressions. Consider the following example:
+
+\begin{fortrancodeenv}
+program expr2
+
+    print*, 2**3
+    print*, 2**(-3)
+
+end program expr2
+\end{fortrancodeenv}
+
+When run will give the following output:
+
+\begin{fortrancodeenv}
+           8
+           0
+\end{fortrancodeenv}
+
+The reason for the 0 in the second expression is that \fvar{2**(-3)} is the same as 1/2**3, which will be truncated to 0 as an integer expression.
+
+When mixing data types in expressions, weaker data types will be converted to the stronger type. The result of the expression will be of the stronger type. \fkeyw{real} is stronger than \fkeyw{integer}. Consider the following code:
+
+\begin{fortrancodeenv}
+real(dp) :: a
+integer :: i
+real(dp) :: b
+
+b = a * i
+\end{fortrancodeenv}
+
+Here, the i variable reference will be converted to \fvar{real(dp)} when the expression is evaluated.
 
 %---------------------------------------------------------------------
 \section{Arrays and matrices}
@@ -361,10 +491,10 @@ v(5) = 5.0
 
 The number of elements in the list must be the same as the number of elements in the array variable.
 
-Assignments to specific parts of arrays can be achieved using index-notation. The following example illustrates this concept.
+Assignments to specific parts of arrays can be achieved by slicing. The following example illustrates this concept.
 
 \begin{fortrancodeenv}
-program index_notation
+program slicing
 
     implicit none
     real :: A(4,4)
@@ -376,10 +506,10 @@ program index_notation
 
     stop
 
-end program index_notation
+end program slicing
 \end{fortrancodeenv}
 
-Using index-notation rows or columns can be assigned in single statements as shown in the following code:
+Using slicing rows or columns can be assigned in single statements as shown in the following code:
 
 \begin{fortrancodeenv}
 ! Assign row 5 in matrix K the values 1, 2, 3, 4, 5
@@ -391,6 +521,62 @@ K(5,:) = (/ 1.0, 2.0, 3.0, 4.0, 5.0 /)
 v = (/ 5.0, 4.0, 3.0, 2.0, 1.0 /)
 \end{fortrancodeenv}
 
+%---------------------------------------------------------------------
+\subsection{Array expressions}
+%---------------------------------------------------------------------
+
+In modern Fortran expressions can also be used on arrays. The operators will then apply element wise to the in the expression. For this to work the arrays must be of the same size. Array expression can also contain scalar values. These will be broadcast to the array elements. Consider the following arrays:
+
+\begin{fortrancodeenv}
+real :: a(10,20), b(10,20), c(10,20)
+real :: u(5), v(5)
+\end{fortrancodeenv}
+
+The following expression will divide all values in \fvar{a} with the values in \fvar{b}.
+
+\begin{fortrancodeenv}
+c = a/b
+\end{fortrancodeenv}
+
+This is equivalent to:
+
+\begin{fortrancodeenv}
+do i=1,10
+    do j=1,20
+        c(i,j) = a(i,j)/b(i,j)
+    end do
+end do
+\end{fortrancodeenv}
+
+It is important to make sure the resulting variable on the left side of the assignment has the same size as the resulting array expression.
+
+The following expression adds a scalar value to all elements in the array \fvar{v}:
+
+\begin{fortrancodeenv}
+u = v + 1.0
+\end{fortrancodeenv}
+
+This is equivalent to:
+
+\begin{fortrancodeenv}
+do i=1,5
+    u(i) = v(i) + 1.0
+end do
+\end{fortrancodeenv}
+
+It is also possible to use slicing to extract a ''slice'' that can be used in an array expression:
+
+\begin{fortrancodeenv}
+u = 5.0/v + a(1:5,5)
+\end{fortrancodeenv}
+
+Which is equivalent to:
+
+\begin{fortrancodeenv}
+do i=1,5
+    u(i) = 5.0/v(i) + a(i,5)
+end do
+\end{fortrancodeenv}
 
 %---------------------------------------------------------------------
 \subsection{Array storage}
@@ -877,7 +1063,7 @@ The \fkeyw{dostuff} routine can be called in 2 ways:
 
 \begin{fortrancodeenv}
 call dostuff(A, b)    ! c is omitted as it is optional
-call dostuff(A, b, c) 
+call dostuff(A, b, c)
 \end{fortrancodeenv}
 
 If a routine is called without optional parameters the routine has to be able to determine if a parameter used this can be done using a special function, \fkeyw{present(...)}. This functions returns \fkeyw{.true.} if given parameter is present in the call to the subroutine.
@@ -892,7 +1078,7 @@ In the last call the \fkeyw{topping} keyword is used to specify the last optiona
 \subsection{Procedure arguments}
 %---------------------------------------------------------------------
 
-An efficient feature that exists in many other languages is the ability to pass subroutines as arguments to subroutines. This can provide efficient ways to provide algorithms with user provided functions to be used within the algorithm. As an example, a function can be input to a numeric differentiation algorithm as a subroutine parameter. It is now possible to do this in Fortran 2003. 
+An efficient feature that exists in many other languages is the ability to pass subroutines as arguments to subroutines. This can provide efficient ways to provide algorithms with user provided functions to be used within the algorithm. As an example, a function can be input to a numeric differentiation algorithm as a subroutine parameter. It is now possible to do this in Fortran 2003.
 
 To implement a subroutine that takes a function as an input parameter, the function definition has to be declared in the subroutine parameter declaration using an \fkeyw{interface} block.
 
@@ -901,7 +1087,7 @@ real(8) function integrate(a, b, func)
 
 	real(8) :: a, b
 	
-	interface 
+	interface
 		real(8) function func(x)
 			real(8), intent(in) :: x
 		end function func
@@ -936,7 +1122,7 @@ area = integrate(0.0, 1.0, myfunc)
 \subsection{Modules}
 %---------------------------------------------------------------------
 
-When programs become larger, they often need to be split into more manageable parts. In other languages this is often achieved using include files or packages. In Fortran 77, no such functionality exists. Source files can be grouped in files, but no standard way of including specific libraries of subroutines or function exists in the language. The C preprocessor is often used to include code from libraries in Fortran, but is not standardised in the language itself. 
+When programs become larger, they often need to be split into more manageable parts. In other languages this is often achieved using include files or packages. In Fortran 77, no such functionality exists. Source files can be grouped in files, but no standard way of including specific libraries of subroutines or function exists in the language. The C preprocessor is often used to include code from libraries in Fortran, but is not standardised in the language itself.
 
 In Fortran 90 the concept of modules was introduced. A Fortran 90 module can contain both variables, parameters and subroutines. This makes it possible to divide programs into well defined modules which are more easily maintained. The syntax for a module is similar to that of how a main program in Fortran is defined.
 
@@ -961,7 +1147,7 @@ module mymodule
 
 The ability to hide variables in modules enables the developer to hide the implementation details of a module, reducing the risk of accidental modification variables and use of subroutines used in the implementation.
 
-To access the routines and variables in a module the \fkeyw{use} statement is used. This makes all the public variables and subroutines available in programs and other modules. In the following example illustrate how the subroutines use in the previous examples are placed in a module, \fname{truss}, and used from a main program. 
+To access the routines and variables in a module the \fkeyw{use} statement is used. This makes all the public variables and subroutines available in programs and other modules. In the following example illustrate how the subroutines use in the previous examples are placed in a module, \fname{truss}, and used from a main program.
 
 \mintforfile{source/modules/module_truss.f90}
 
@@ -981,7 +1167,7 @@ When implementing modules, some of the routines and variables are only used the 
 real, private :: a
 \end{fortrancodeenv}
 
-If no \fkeyw{private} attribute is given the variable is by default declared as \fkeyw{public}. If a private variable is access from another module a main program will generate a compiler error. 
+If no \fkeyw{private} attribute is given the variable is by default declared as \fkeyw{public}. If a private variable is access from another module a main program will generate a compiler error.
 
 To declare a subroutine or function as private it has to be declared as such in the specification part of the module, that is before the \fkeyw{contains}-keyword. In the following example illustrates the concept.
 
@@ -1007,13 +1193,13 @@ contains
 end module mymodule
 \end{fortrancodeenv}
 
-In this example, \fname{myprivatesub}, can only be called from within the module. Calling it from another module or main program will result in a compiler error. \fname{myprivatesub} is not declared as private in the specification part and hence can be called from all other modules. 
+In this example, \fname{myprivatesub}, can only be called from within the module. Calling it from another module or main program will result in a compiler error. \fname{myprivatesub} is not declared as private in the specification part and hence can be called from all other modules.
 
 %---------------------------------------------------------------------
 \subsection{Overloading}
 %---------------------------------------------------------------------
 
-As Fortran is a strongly typed language, supporting multiple data types in a single subroutine is not possible and requires separate unique subroutines declarations. To simplify module use and enable a module user to call a routine with different data types, Fortran 90 supports the concept of overloading. Using overloading the compiler can decide which routine to call depending on the datatype used. However, this requires a special declaration in the module specification. 
+As Fortran is a strongly typed language, supporting multiple data types in a single subroutine is not possible and requires separate unique subroutines declarations. To simplify module use and enable a module user to call a routine with different data types, Fortran 90 supports the concept of overloading. Using overloading the compiler can decide which routine to call depending on the datatype used. However, this requires a special declaration in the module specification.
 
 To illustrate this, a function, \fname{func}, is implemented that can take either a floating point parameter or an integer parameter. To implement this function, an interface declaration for \fname{func} is added in the module specification part:
 
@@ -1064,7 +1250,7 @@ program overloading
 	b = func(b)
 	
 	print *, a
-	print *, b 
+	print *, b
 	
 end program overloading
 \end{fortrancodeenv}
@@ -1074,7 +1260,7 @@ Running this program produce the following output:
 \cmdmode
 
 \begin{fortrancodeenv}
-|\$| ./overloading 
+|\$| ./overloading
         1764
    1.0000000000000000
 \end{fortrancodeenv}
@@ -1087,7 +1273,7 @@ This means that \fname{ifunc} is called in the first call to \fname{func} and \f
 \subsection{operator overloading}
 %---------------------------------------------------------------------
 
-In many modern languages such as C++ and Python, the operators can be overloaded to support expressions for user implemented data types. This is also possible in Fortran. To illustrate how this is achieved, a \fname{vector\_operations}-module is implemented, enabling addition of vectors using the + operator. 
+In many modern languages such as C++ and Python, the operators can be overloaded to support expressions for user implemented data types. This is also possible in Fortran. To illustrate how this is achieved, a \fname{vector\_operations}-module is implemented, enabling addition of vectors using the + operator.
 
 First, a vector type is defined in our module \fname{vector\_operations}. This is the actual data type that will be used in the expressions to be evaluated.
 
@@ -1152,8 +1338,8 @@ Running the code will produced the expected output:
 \cmdmode
 
 \begin{fortrancodeenv}
-|\$| ./opoverload 
-   1.0000000000000000        1.0000000000000000        0.0000000000000000    
+|\$| ./opoverload
+   1.0000000000000000        1.0000000000000000        0.0000000000000000
 \end{fortrancodeenv}
 
 \fmode
@@ -1255,7 +1441,7 @@ A more thorough description of the available format specifiers in Fortran is giv
 %---------------------------------------------------------------------
 
 The input and output routines can also be used to write data to and from files. This is accomplished by associating a file in the file system with a file unit number, and using this number in the \fkeyw{read} and \fkeyw{write} statements to direct the input and output to the correct files. A file is associated, opened, with a unit number using an \fkeyw{open}-statement. When operations on the file is finished it is closed using the
-\fkeyw{close}-statement. 
+\fkeyw{close}-statement.
 
 The file unit number is an integer usually between 1 and 99. On many systems the file unit number 5 is the keyboard and unit 6 the screen display. It is therefore recommended to avoid using these numbers in file operations.
 
@@ -1290,7 +1476,7 @@ Next, we use a \fname{write}-statement, that instead of a file unit number takes
 
 \begin{fortrancodeenv}
 	...
-	write(fmt, '(A,I1,A)') '(',cols, 'G8.3)'  
+	write(fmt, '(A,I1,A)') '(',cols, 'G8.3)'
 	...
 \end{fortrancodeenv}
 
@@ -1328,13 +1514,13 @@ The resulting formatted output is shown below:
 \cmdmode
 
 \begin{fortrancodeenv}
-|\$| ./dynamic_fcodes 
-42.0    42.0    42.0    42.0    42.0    42.0    
-42.0    42.0    42.0    42.0    42.0    42.0    
-42.0    42.0    42.0    42.0    42.0    42.0    
-42.0    42.0    42.0    42.0    42.0    42.0    
-42.0    42.0    42.0    42.0    42.0    42.0    
-42.0    42.0    42.0    42.0    42.0    42.0    
+|\$| ./dynamic_fcodes
+42.0    42.0    42.0    42.0    42.0    42.0
+42.0    42.0    42.0    42.0    42.0    42.0
+42.0    42.0    42.0    42.0    42.0    42.0
+42.0    42.0    42.0    42.0    42.0    42.0
+42.0    42.0    42.0    42.0    42.0    42.0
+42.0    42.0    42.0    42.0    42.0    42.0
 \end{fortrancodeenv}
 
 \fmode
@@ -1350,7 +1536,7 @@ integer :: no_of_eggs, litres_of_milk, kilos_of_butter, list(5)
 namelist /food/ no_of_eggs, litres_of_milk, kilos_of_butter, list
 \end{fortrancodeenv}
 
-Here a namelist, \fkeyw{food}, is defined consisting of the specified variables. Variables in a namelist can be of any type. To write the variables to a file, the \fkeyw{nml}-keyword can be used in the \fkeyw{read}- and \fkeyw{write}-statements to specify which namelist that should be used. 
+Here a namelist, \fkeyw{food}, is defined consisting of the specified variables. Variables in a namelist can be of any type. To write the variables to a file, the \fkeyw{nml}-keyword can be used in the \fkeyw{read}- and \fkeyw{write}-statements to specify which namelist that should be used.
 
 The namelist in the text file starts with the \& character followed by the namelist-name then the namelist variable pairs are listed separated by commas. The namelist is ended with a single /. The following example shows 2 namelist entries in a text file:
 
@@ -1399,7 +1585,7 @@ The contents of the written file, \fname{food2.txt}, is shown below:
  LITRES_OF_MILK=          6,
  KILOS_OF_BUTTER=         84,
  LIST=          2,          3,          4,          5,          6,
- 
+
  /
 \end{fortrancodeenv}
 
@@ -1411,7 +1597,7 @@ Pleas notice that Fortran allways uses uppercase for variable names in the writt
 \subsection{Unformatted I/O}
 %---------------------------------------------------------------------
 
-In the previous sections data was read and written in human readable text format. For larger data structures this can be very inefficient. To solve this Fortran can also write data in its native binary format directly to disk. This can save space and can also be read and written much faster to disk. However, the binary format is not standardised and differs between different hardware platforms, preventing files to be used on different hardware. 
+In the previous sections data was read and written in human readable text format. For larger data structures this can be very inefficient. To solve this Fortran can also write data in its native binary format directly to disk. This can save space and can also be read and written much faster to disk. However, the binary format is not standardised and differs between different hardware platforms, preventing files to be used on different hardware.
 
 Reading and writing binary data is done using the same \fkeyw{read}- and wr\fkeyw{write}-ite statements as before, but without the formatting options. Writing an array to disk in binary form can be done with just one simple statement:
 
@@ -1449,7 +1635,7 @@ read(ir) A
 read(ir) B
 \end{fortrancodeenv}
 
-To enable reading and writing unformatted I/O files (binary files) the keyword \fvar{form='unformatted'} must be added to the \fkeyw{open}-statement. 
+To enable reading and writing unformatted I/O files (binary files) the keyword \fvar{form='unformatted'} must be added to the \fkeyw{open}-statement.
 
 \begin{fortrancodeenv}
 real :: A(100), B(200)
@@ -1473,13 +1659,13 @@ The code produced the following output when run:
    0.00000000       0.00000000       0.00000000       0.00000000       0.00000000       0.00000000       1.00000000       0.00000000       0.00000000       0.00000000       0.00000000       0.00000000       0.00000000       1.00000000       0.00000000       0.00000000       0.00000000       0.00000000       0.00000000       0.00000000       1.00000000       0.00000000       0.00000000       0.00000000       0.00000000       0.00000000       0.00000000       1.00000000       0.00000000       0.00000000       0.00000000       0.00000000 ....
 \end{fortrancodeenv}
 
-Which means that the data was read correctly back from disk. 
+Which means that the data was read correctly back from disk.
 
 %---------------------------------------------------------------------
 \subsection{Direct access files}
 %---------------------------------------------------------------------
 
-A variant of unformatted I/O is direct access files. One problem with unformatted I/O is that files have to be read and written sequentially. This make it inefficient if you would like to access certain parts of the file randomly. To solve this problem Fortran provides direct access file format. In this format the file is divided in several equally spaced data records. These records can be read randomly back from a single file. It can be compared to a datbase file with data records. 
+A variant of unformatted I/O is direct access files. One problem with unformatted I/O is that files have to be read and written sequentially. This make it inefficient if you would like to access certain parts of the file randomly. To solve this problem Fortran provides direct access file format. In this format the file is divided in several equally spaced data records. These records can be read randomly back from a single file. It can be compared to a datbase file with data records.
 
 To create a direct access file consisting of records of the following derived data type,
 
@@ -1531,9 +1717,9 @@ The following code shows a complete example, writing to records to a direct acce
 \subsection{Error handling in I/O operations}
 %---------------------------------------------------------------------
 
-One problem with reading and writing files is that errors can occur on a system level, such as unavailable disk space, file system problems and non-existant files. If not handled, the program will crash in an unexpected way and prevent proper clean up code to be run. In Fortran I/O errors are handled using the \fkeyw{err}-option in all I/O related functions. Using the \fkeyw{err}-option a label can be defined where the execution continues when an I/O error occurs. 
+One problem with reading and writing files is that errors can occur on a system level, such as unavailable disk space, file system problems and non-existant files. If not handled, the program will crash in an unexpected way and prevent proper clean up code to be run. In Fortran I/O errors are handled using the \fkeyw{err}-option in all I/O related functions. Using the \fkeyw{err}-option a label can be defined where the execution continues when an I/O error occurs.
 
-In the following code a file is opened for reading. Error handling code is added for each I/O operation, providing a different label and response for all error conditions. 
+In the following code a file is opened for reading. Error handling code is added for each I/O operation, providing a different label and response for all error conditions.
 
 \mintforfile{source/error_handling/main.f90}
 
@@ -1558,7 +1744,7 @@ If no error was encountered the associated variable with be assigned an error co
 
 \begin{itemize}
 \item -2, End of record condition occurs in non-advancing I/O.
-\item -1, End of file condition. 
+\item -1, End of file condition.
 \item >1, Standardised list of fortran error codes.
 \end{itemize}
 
@@ -1574,9 +1760,9 @@ subroutine read_from_file(...)
     ...
     return
 
-101 print*, 'Error ', ierr, ' reading file.' 
+101 print*, 'Error ', ierr, ' reading file.'
     return
-    
+
 end subroutine
 \end{fortrancodeenv}
 
@@ -1728,7 +1914,7 @@ In this example two arrays with the same size are used in the \fkeyw{where}-stat
 \section{Object-oriented programming}
 %---------------------------------------------------------------------
 
-In procedural programming, data and subroutines are treated separately. Subroutines operate on provided data structures and variables. In object-oriented programming data and subroutines are combined into objects. Objects in numerical computing can be  be different matrix types, particles, vectors or solvers. The major benefits are that the actual data structures used in the implementation of an object can be hidden from the user of the object, enabling the developer of an object to improve the implementation without affecting users of the objects (encapsulation). Another important feature of object-oriented programming is the ability to inherit and extend functionality of objects (inheritance). This enables user of object and developers to extend and modify functionality of existing objects, relying on functionality of the parent object. 
+In procedural programming, data and subroutines are treated separately. Subroutines operate on provided data structures and variables. In object-oriented programming data and subroutines are combined into objects. Objects in numerical computing can be  be different matrix types, particles, vectors or solvers. The major benefits are that the actual data structures used in the implementation of an object can be hidden from the user of the object, enabling the developer of an object to improve the implementation without affecting users of the objects (encapsulation). Another important feature of object-oriented programming is the ability to inherit and extend functionality of objects (inheritance). This enables user of object and developers to extend and modify functionality of existing objects, relying on functionality of the parent object.
 
 In Fortran 2003 object-oriented features where added to the language, making Fortran almost as feature rich as other more recent languages. Most modern Fortran compilers today support the object-oriented features added in the 2003 standard, enabling developers to implement truly object-oriented numerical applications in Fortran.
 
@@ -1781,7 +1967,7 @@ module particles
     ...
 \end{fortrancodeenv}
 
-This declaration states that the class, \fkeyw{particle\_class}, has a member subroutine with the name, \fname{init}, defined later in the source code by the subroutine \fname{particle\_init}. To complete the class definition, the subroutine \fname{particle\_init} have to be added to the \fname{particles} module. 
+This declaration states that the class, \fkeyw{particle\_class}, has a member subroutine with the name, \fname{init}, defined later in the source code by the subroutine \fname{particle\_init}. To complete the class definition, the subroutine \fname{particle\_init} have to be added to the \fname{particles} module.
 
 All member subroutines can take a first dummy argument with containing a reference to the actual instance. This will be used to enable us to do our initialisation on the actual data structures of the instance. The \fname{init}-subroutine of our particle class then becomes:
 
@@ -1834,7 +2020,7 @@ The class now has the ability to initialise its data variables. However, we don'
 \end{fortrancodeenv}
 
 When this has been done the implementations of these subroutines are added in the \fkeyw{contains}-section of the \fname{parcticles}-modules:
-    
+
 \begin{fortrancodeenv}
 contains
 
@@ -1858,10 +2044,10 @@ subroutine particle_set_velocity(this, vx, vy ,vz)
 
 end subroutine particle_set_velocity
 
-end module particles        
+end module particles
 \end{fortrancodeenv}
 
-In the same way as in the \fname{init}-subroutine, \fname{this}, is used to access the member variables of the class instance. 
+In the same way as in the \fname{init}-subroutine, \fname{this}, is used to access the member variables of the class instance.
 
 It is now possible to assign values to our instances without directly accessing the internal member variables as shown in the following code:
 
@@ -1972,11 +2158,11 @@ This code would give the following output:
 \begin{fortrancodeenv}
  Particle position
  -----------------
-  1.00      1.00      1.00    
- 
+  1.00      1.00      1.00
+
  Particle velocity
  -----------------
-  1.00      1.00      1.00    
+  1.00      1.00      1.00
 \end{fortrancodeenv}
 
 An extension of this could be to provide subroutines for reading and writing the object instance to a file.
@@ -2015,7 +2201,7 @@ Error: Component 'm_pos' at (1) is a PRIVATE component of 'particle_class'
 
 \fmode
 
-This means that using the \fkeyw{private} in class declaration effectively will prevent any users mistakenly accessing the private instance variables of any classes. 
+This means that using the \fkeyw{private} in class declaration effectively will prevent any users mistakenly accessing the private instance variables of any classes.
 
 The \fkeyw{private} before the variable declaration will make all variables private. It is also possible to selectively make variables public or private by removing the private declaration and adding the variable attribute \fkeyw{private} to the variable declaration as below:
 
@@ -2037,7 +2223,7 @@ private
 contains
     procedure :: init => particle_init
     procedure :: set_position => particle_set_position
-    procedure :: set_velocity => particle_set_velocity 
+    procedure :: set_velocity => particle_set_velocity
     procedure :: get_position => particle_get_position
     procedure :: get_velocity => particle_get_velocity
     procedure :: print => particle_print
@@ -2051,7 +2237,7 @@ Here a private method \fname{setup} has been added that can only be called for m
 \subsection{Extending existing classes}
 %---------------------------------------------------------------------
 
-Classes in Fortran can be extended using the special attribute \fkeyw{extends} in its type definition. In the following example the previous \fname{particle\_class} is extended by the \fname{sphere\_particle\_class} to handle a spherical particle. 
+Classes in Fortran can be extended using the special attribute \fkeyw{extends} in its type definition. In the following example the previous \fname{particle\_class} is extended by the \fname{sphere\_particle\_class} to handle a spherical particle.
 
 \begin{fortrancodeenv}
 type, extends(particle_class) :: sphere_particle_class
@@ -2090,10 +2276,10 @@ The above type definition, will override the existing \fname{init}-routine from 
 subroutine sphere_init(this)
 
     class(sphere_particle_class) :: this
-    
+
     ! --- Calling inherited init routine.
 
-    call this % particle_class % init() 
+    call this % particle_class % init()
 
     this % m_radius = 1.0
 
@@ -2110,34 +2296,5 @@ call [instance reference] \% [type definition name] \% [routine name]
 \subsection{Overriding class methods}
 %---------------------------------------------------------------------
 
-In the previous chapter a first example of 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+In the previous chapter a first example of
 

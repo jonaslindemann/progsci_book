@@ -1,0 +1,51 @@
+33 Patch Control
+
+0
+0
+1
+sciprog.tex
+9
+8
+1
+
+sciprog.tex
+TeX
+135278587 0 76 40 -1 4374 0 0 1822 862 0 1 44 420 -1 -1 0 0 42 -1 -1 42 1 0 4374 -1  0 -1 0
+chapter_fortran.tex
+TeX
+286273531 1 -1 24571 -1 24591 208 208 2160 837 0 1 244 660 -1 -1 0 0 70 -1 -1 70 1 0 24591 -1  0 -1 0
+chapter_fortran_projects.tex
+TeX
+1060859 2 -1 181 -1 144 104 104 2056 733 0 1 44 40 -1 -1 0 0 70 -1 -1 70 1 0 144 -1  0 -1 0
+chapter_references.tex
+TeX
+1060859 0 -1 163 -1 816 130 130 2082 759 0 1 44 300 -1 -1 0 0 25 -1 -1 25 1 0 816 -1  0 -1 0
+app_compiling_fortran.tex
+TeX
+1060859 0 -1 0 -1 710 78 78 2030 707 0 1 44 140 -1 -1 0 0 70 -1 -1 70 1 0 710 -1  0 -1 0
+section_fortran_make.tex
+TeX
+1060859 0 -1 0 -1 3904 52 52 1062 391 0 1 204 420 -1 -1 0 0 70 -1 -1 70 1 0 3904 -1  0 -1 0
+section_fortran_cmake.tex
+TeX
+1060859 0 -1 0 -1 0 156 156 2108 785 0 1 44 0 -1 -1 0 0 70 -1 -1 70 1 0 0 -1  0 -1 0
+chapter_qtcreator.tex
+TeX
+1060859 0 -1 1517 -1 879 182 182 2134 811 0 1 534 260 -1 -1 0 0 70 -1 -1 70 1 0 879 -1  0 -1 0
+:\Program Files\WinEdt Team\WinEdt 10\Exec\PDF\PDFCloseDoc.edt
+ASCII:EDT
+269494139 7 52 1 51 1 26 26 1036 365 1 0 73 170 -1 -1 0 0 21 0 0 21 1 0 1 51  0 0 0
+
+*sciprog.tex
+>
+*chapter_introduction
+*chapter_fortran
+*chapter_fortran_python
+*chapter_fortran_projects
+*section_fortran_make
+*section_fortran_cmake
+*chapter_qtcreator
+*chapter_references
+*app_compiling_fortran
+*app_exercises
+<
