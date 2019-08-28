@@ -1,6 +1,8 @@
 # Loading modules on aurora-desktop
 
-    $ module load foss/2016.09
+    $ module load foss/2017a
+    $ module load Python
+    $ module load CMake
     $ module load qtcreator
     $ module load allinea_forge
 
@@ -177,7 +179,7 @@ Source is located in intsrc/exNN
 
     end program ex5
 
-# ,Example 6 - Operators
+# Example 6 - Operators
 
     program ex6
 

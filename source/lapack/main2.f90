@@ -20,8 +20,8 @@ program lapack_newstyle
 
     allocate( a(n,n), b(n,nrhs) )
 
-    call initRand()
-    call randMat(a,10.0D0,50.0D0)
+    call init_rand()
+    call rand_mat(a,10.0D0,50.0D0)
 
     do j = 1, nrhs; b(:,j) = sum(a, dim=2)*j; enddo
 

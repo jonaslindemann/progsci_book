@@ -24,4 +24,5 @@ program ex8
     ex3 = 5/v + a(1:5,5)
     ex4 = a.eq.b
 
+
 end program ex8

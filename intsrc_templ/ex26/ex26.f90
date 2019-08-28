@@ -11,9 +11,6 @@ program ex26
     print*, lbound(A)
     print*, ubound(A)
 
-    print*, lbound(B)
-    print*, ubound(B)
-
     print*, lbound(C)
     print*, ubound(C)
 
@@ -21,8 +18,9 @@ program ex26
     print*, shape(B)
     print*, shape(C)
 
-    print*, size(A)
-    print*, size(B)
+    print*, size(A,1)
+    print*, size(B,1)
     print*, size(C)
+
 
 end program ex26

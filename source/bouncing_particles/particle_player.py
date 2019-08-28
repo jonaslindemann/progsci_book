@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from Tkinter import *
+from tkinter import *
 from math import *
 from numpy import *
 
@@ -9,8 +9,8 @@ class Particle(object):
     scaleX = 1000.0
     scaleY = 1000.0
     def __init__(self, p, r):
-    	self._p = p
-    	self._r = r
+        self._p = p
+        self._r = r
         self.id = Particle.canvas.create_oval(-4, -4, 4, 4, fill="white")
         self.update(0)
         
@@ -37,12 +37,12 @@ class Particles:
 		
 		# Read particle size
 		
-		print("Reading particle sizes...")
+		#print("Reading particle sizes...")
 		
 		for i in range(nParticles):
 			self._particleRadius.append(float(stateFile.readline()))
 
-		line = stateFile.readline()
+		nParticles = int(stateFile.readline())
 		line = stateFile.readline()
 		
 		print("Reading particle traces...")
@@ -53,7 +53,7 @@ class Particles:
 			j+=1
 			for i in range(nParticles):
 				pos = [float(item) for item in line.strip().split()]
-				if self._particleDict.has_key(i):
+				if i in self._particleDict:
 					self._particleDict[i].append(pos)
 				else:
 					self._particleDict[i] = []
@@ -76,7 +76,7 @@ class Particles:
 		for i in range(nParticles):
 			p = asarray(self._particleDict[i])
 			self._particleDict[i] = p
-			self._particles.append(Particle(p,self._particleRadius[i]))
+			self._particles.append(Particle(p,0.001))
 			
 	def update(self, step):
 		for p in self._particles:
@@ -107,16 +107,16 @@ class ParticleSimulation:
         
     def run(self):
     
-    	step = 0
+        step = 0
     
         try:
             while 1:
-            	self._particles.update(step)
+                self._particles.update(step)
                 self._canvas.update_idletasks()
                 self._parent.update() # process events
                 step += 1
                 if step == self._particles.steps:
-                	step = 0
+                    step = 0
         except TclError:
             pass # to avoid errors when the window is closed
         

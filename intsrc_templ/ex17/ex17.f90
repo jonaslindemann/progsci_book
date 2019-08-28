@@ -15,8 +15,6 @@ subroutine mysub(A)
     real(rk) :: A(:,:)
     real(rk) :: B(size(A,2), size(A,1))
 
-    print*, size(A,1)
-    print*, size(A,2)
     print*, size(B,1)
     print*, size(B,2)
 

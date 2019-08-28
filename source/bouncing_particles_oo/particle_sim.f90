@@ -125,7 +125,7 @@ subroutine particle_simulator_run(this, n_iterations)
         call this % check_collisions()
         call this % check_boundaries()
         call this % update()
-        call this % m_psys % write_positions()
+        !call this % m_psys % write_positions()
     end do
 
 end subroutine

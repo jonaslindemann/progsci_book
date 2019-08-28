@@ -16,7 +16,7 @@ subroutine mysub(a, B, C)
 
     a = 42
     B = 42.0_rk
-    C = 84.0_rk
+    C = 42.0_rk
 
 end subroutine mysub
 

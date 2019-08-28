@@ -2,21 +2,21 @@ module utils
 
 use datatypes
 
-interface printMatrix
-    module procedure printMatrixD, printMatrixS
+interface print_matrix
+    module procedure print_matrix_d, print_matrix_s
 end interface
 
-interface printVector
-    module procedure printVectorD, printVectorS
+interface print_vector
+    module procedure print_vector_d, print_vector_s
 end interface
 
-interface randMat
-    module procedure randMatD, randMatS
+interface rand_mat
+    module procedure rand_mat_d, rand_mat_s
 end interface
 
 contains
 
-subroutine printMatrixD(A, name)
+subroutine print_matrix_d(A, name)
 
     real(dp), intent(in) :: A(:,:)
     character(*), intent(in), optional :: name
@@ -60,9 +60,9 @@ subroutine printMatrixD(A, name)
 
     write(*,'(TL1,A)') '-------------------------------------'
 
-end subroutine printMatrixD
+end subroutine print_matrix_d
 
-subroutine printMatrixS(A, name)
+subroutine print_matrix_s(A, name)
 
     real(sp), intent(in) :: A(:,:)
     character(*), intent(in), optional :: name
@@ -106,9 +106,9 @@ subroutine printMatrixS(A, name)
 
     write(*,'(TL1,A)') '-------------------------------------'
 
-end subroutine printMatrixS
+end subroutine print_matrix_s
 
-subroutine printVectorD(A, name)
+subroutine print_vector_d(A, name)
 
     real(dp), intent(in) :: a(:)
     character(*), intent(in), optional :: name
@@ -149,9 +149,9 @@ subroutine printVectorD(A, name)
 
     write(*,'(TL1,A)') '-------------------------------------'
 
-end subroutine printVectorD
+end subroutine print_vector_d
 
-subroutine printVectorS(A, name)
+subroutine print_vector_s(A, name)
 
     real(sp), intent(in) :: a(:)
     character(*), intent(in), optional :: name
@@ -192,9 +192,9 @@ subroutine printVectorS(A, name)
 
     write(*,'(TL1,A)') '-------------------------------------'
 
-end subroutine printVectorS
+end subroutine print_vector_s
 
-subroutine randMatD(A, randMin, randMax)
+subroutine rand_mat_d(A, randMin, randMax)
 
     real(dp), intent(inout) :: A(:,:)
     real(dp), intent(in) :: randMin, randMax
@@ -205,9 +205,9 @@ subroutine randMatD(A, randMin, randMax)
 
     A = randMin + (randMax-randMin) * A
 
-end subroutine randMatD
+end subroutine rand_mat_d
 
-subroutine randMatS(A, randMin, randMax)
+subroutine rand_mat_s(A, randMin, randMax)
 
     real(sp), intent(inout) :: A(:,:)
     real(sp), intent(in) :: randMin, randMax
@@ -218,9 +218,9 @@ subroutine randMatS(A, randMin, randMax)
 
     A = randMin + (randMax-randMin) * A
 
-end subroutine randMatS
+end subroutine rand_mat_s
 
-subroutine initRand()
+subroutine init_rand()
     integer :: values(1:8), k
     integer, dimension(:), allocatable :: seed
     real(real64) :: r

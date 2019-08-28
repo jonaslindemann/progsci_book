@@ -4,11 +4,15 @@ program ex18
 
     integer, parameter :: rk = selected_real_kind(15,300)
 
+    integer :: n
     real(rk), allocatable :: f(:)
     real(rk), dimension(:,:), allocatable :: K
+    !real(rk), allocatable :: K(:,:)
 
-    allocate(f(20))
-    allocate(K(20,20))
+    n = 200
+
+    allocate(f(n))
+    allocate(K(n,n))
 
     K = 42.0_rk
     f = 84.0_rk

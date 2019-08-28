@@ -10,5 +10,8 @@ program ex12
 
     call mysub(a, B, C)
 
+    print*, a
+    print*, B(1,1)
+    print*, c(1)
 
 end program ex12

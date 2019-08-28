@@ -42,7 +42,7 @@ subroutine particle_system_init(this, n)
     integer(ik) :: i
     real(rk) :: alfa
 
-    this%m_n_particles = n
+    this % m_n_particles = n
     allocate(this%m_pos(n,2))
     allocate(this%m_vel(n,2))
     allocate(this%m_r(n))

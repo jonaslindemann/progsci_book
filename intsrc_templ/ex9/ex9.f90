@@ -9,6 +9,8 @@ program ex9
     call initRand()
     call randVal(v1, 0.0_rk, 1.0_rk)
 
+    !if (v1>0.5_rk) v2 = 0.5_rk
+
     !if (v1>0.5) then
     !    v2 = 0.5
     !endif

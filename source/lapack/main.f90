@@ -16,22 +16,22 @@ program la_sgesv_example
 
     !  .. "executable statements" ..
 
-    call initRand()
+    call init_rand()
 
     n = 10
     nrhs = 4
 
     allocate( a(n,n), aa(n,n), b(n,nrhs), bb(n,nrhs), ipiv(n) )
 
-    call randMat(aa,10.0D0,50.0D0)
+    call rand_mat(aa,10.0D0,50.0D0)
 
     do j = 1, nrhs; bb(:,j) = sum( aa, dim=2)*j; enddo
 
     write(*,*) 'the matrix a:'
-    call printMatrix(aa)
+    call print_matrix(aa)
 
     write(*,*) 'the rhs matrix b:'
-    call printMatrix(bb)
+    call print_matrix(bb)
 
     write(*,*) 'call la_gesv( a, b )'
     a=aa; b=bb
@@ -39,7 +39,7 @@ program la_sgesv_example
     call DGESV(n, nrhs, a, n, ipiv, b, n, info)
 
     write(*,*) 'b - the solution vectors computed by la_gesv'
-    call printMatrix(b)
+    call print_matrix(b)
 
     write(*,*)'ipiv on exit:', ipiv
 

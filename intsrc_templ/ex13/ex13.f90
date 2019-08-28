@@ -10,4 +10,10 @@ program ex13
 
     call mysub(a, B, 10, 20, C, 30)
 
+    print*, a
+    print*, B(1,1)
+    print*, c(1)
+
+
+
 end program ex13

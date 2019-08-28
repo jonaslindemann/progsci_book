@@ -14,9 +14,9 @@ program ex22
     end do
 
     call printMatrix(A, 'A')
-    call printMatrix(A(1:2,5:10), 'A2')
+    call printMatrix(A(1:2, 5:10), 'A2')
     call printVector(A(1,5:10), 'a2')
     call printMatrix(A(:,5:10), 'A3')
-    call printMatrix(A((/1,3/),(/2,4/)), 'A4')
+    call printMatrix(A((/1,3/), (/2,4/)), 'A4')
 
 end program ex22

@@ -25,6 +25,7 @@ subroutine printArray(A)
 
     write(fmt, '(A,I1,A)') '(',cols, 'G8.3)'
 
+    print*, fmt
     do i=1,rows
             print fmt, (A(i,j), j=1,cols)
     end do

@@ -18,5 +18,9 @@ program ex43
 
     print*, trim(argument)
 
+    call get_command_argument(1, argument)
+
+    print*, trim(argument)
+
 
 end program ex43

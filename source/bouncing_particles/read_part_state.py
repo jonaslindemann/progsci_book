@@ -3,7 +3,7 @@
 from numpy import *
 from pylab import *
 
-stateFilename = "./build/particle.state"
+stateFilename = "./particle.state"
 
 stateFile = open(stateFilename, 'r')
 nParticles = int(stateFile.readline())
@@ -16,10 +16,10 @@ j = 0
 
 while line:
 	j+=1
-	print "Reading particle trace,", j
+	print("Reading particle trace,", j)
 	for i in range(nParticles):
 		pos = [float(item) for item in line.strip().split()]
-		if particleDict.has_key(i):
+		if i in particleDict:
 			particleDict[i].append(pos)
 		else:
 			particleDict[i] = []

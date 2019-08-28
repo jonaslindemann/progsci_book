@@ -7,6 +7,6 @@ program private_entities
     call publicfunc
     !call privatefunc
 
-    !visible = 42
+    visible = 42
 
 end program private_entities

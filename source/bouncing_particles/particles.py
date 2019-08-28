@@ -3,7 +3,7 @@
 from particle import *
 from numpy import *
 
-nParticles = 20
+nParticles = 50
 
 coords = zeros([nParticles,2],'d', order='F')
 sizes = zeros([nParticles], 'd', order='F')
@@ -15,16 +15,13 @@ particle_driver.get_sizes(sizes)
 
 print("Run simulation...")
 
-for i in range(1):
+for i in range(500):
 	particle_driver.collision_check()
 	particle_driver.boundary_check()
 	particle_driver.update()
 	particle_driver.get_positions(coords)
-	#particle_driver.write_positions()
+	particle_driver.write_positions()
 	
-print coords	
-print sizes
-
 print("End simulation...")
 	
 particle_driver.deallocate_system()

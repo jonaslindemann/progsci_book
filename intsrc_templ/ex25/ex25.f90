@@ -18,24 +18,20 @@ program ex25
     if (all(B) .eqv. .true.) then
         print*, 'All elements are true.'
     else
-        print*, 'Not all elements are true'
+        print*, 'Not all elements are true.'
     end if
 
     B = .false.
+    B(1,1) = .true.
 
     if (any(B) .eqv. .true.) then
-        print*, 'Some of the elements in B are true'
+        print*, 'Some elements in B are true.'
     else
-        print*, 'None of the elements in B are true'
+        print*, 'None of the elements in B are true.'
     end if
 
-    B(5,5) = .true.
 
-    if (any(B) .eqv. .true.) then
-        print*, 'Some of the elements in B are true'
-    else
-        print*, 'None of the elements in B are true'
-    end if
+    !B = .false.
 
     print*, 'Max value in A = ', maxval(A)
     print*, 'Max value in A = ', minval(A)

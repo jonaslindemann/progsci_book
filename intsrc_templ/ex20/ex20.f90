@@ -22,10 +22,5 @@ program ex20
 
     forall(i=1:20, j=1:20) A(i,j) = i + j
 
-    forall(i=1:20, j=1:20, A(i,j)/=0.0_rk)
-        B(i,j) = 1.0/A(i,j)
-    end forall
-
-    deallocate(A, B)
 
 end program ex20

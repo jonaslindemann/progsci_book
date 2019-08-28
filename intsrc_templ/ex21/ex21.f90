@@ -19,14 +19,15 @@ program ex21
 
 contains
 
-elemental subroutine swap(a, b)
-    real(rk), intent(out) :: a, b
-    real(rk) :: work
+    elemental subroutine swap(a, b)
 
-    work = a
-    a = b
-    b = work
+        real(rk), intent(out) :: a, b
+        real(rk) :: work
 
-end subroutine swap
+        work = a
+        a = b
+        b = work
+
+    end subroutine swap
 
 end program ex21

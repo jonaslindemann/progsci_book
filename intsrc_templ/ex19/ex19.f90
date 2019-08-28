@@ -25,6 +25,4 @@ program ex19
         B = 1.0_rk
     end where
 
-    deallocate(A, B)
-
 end program ex19
