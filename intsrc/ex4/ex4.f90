@@ -24,7 +24,7 @@ program ex4
     A(:,2) = (/ 4.0_rk, 5.0_rk, 6.0_rk /)
 
     print*, pi
-    print*, pi2
+    print*, pi2x
 
     flag = .false.
     first_name = 'jan'

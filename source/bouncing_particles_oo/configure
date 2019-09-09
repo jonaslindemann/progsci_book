@@ -1,0 +1,3 @@
+mkdir build
+cd build
+CC=`which gcc` CXX=`which g++` FC=`which gfortran` cmake ..
