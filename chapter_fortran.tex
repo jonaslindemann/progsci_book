@@ -582,6 +582,14 @@ end do
 \subsection{Array storage}
 %---------------------------------------------------------------------
 
+Memory allocation by the operating system is done in linear blocks of bytes. The operating system does not have the concept of multidimensional arrays. This is a concept introduced by the programming language, in this case Fortran, to make it easier for us to implement algorithms and access values stored in memory.
+
+There are 2 conventions of storing 2D arrays in memory, by column and by row. Fortran as a convention stores arrays by column and C by row. The following figure~\cite{array_storage} illustrates this concept:
+
+\fignormal{array_storage}{Arrays in memory}{fig:array_storage}
+
+The storage of arrays in memory is especially important when calling libraries implemented in other languages, which usually stores arrays by row. The Python library NumPy by default stores all arrays using the C convention. Calling a Fortran subroutine with a pointer to these arrays will probably result in undefined behavior. NumPy supports column ordered arrays by supplying the array-constructor with the option \pkeyw{order=F}.
+
 %---------------------------------------------------------------------
 \subsection{Allocatable arrays}
 %---------------------------------------------------------------------
@@ -613,15 +621,155 @@ deallocate(f)
 \end{fortrancodeenv}
 
 An important issue when using dynamically allocatable variable is to make sure the application does not ''leak''. ''Leaking'' is term used by applications that allocate memory during the execution and never deallocate used memory. If unchecked the application will use more and more resources and will eventually make the operating system start swapping and perhaps become also become unstable. A rule of thumb is that an
-\fkeyw{allocate} statement should always have corresponding \fkeyw{deallocate}. An example of using dynamically allocated arrays is shown in section XXX.
+\fkeyw{allocate} statement should always have corresponding \fkeyw{deallocate}.
 
 %---------------------------------------------------------------------
 \subsection{Array subobjects}
 %---------------------------------------------------------------------
 
+In many situations you want to work on smaller parts or slices of existing arrays. In Modern Fortran this can be accomplished by using the subobject feature. We will illustrate the concept of subobjects by an example. Consider the following declarations of an 2D- and 1D array:
+
+\begin{fortrancodeenv}
+use utils
+
+real(dp) :: A(10,10)
+real(dp) :: v(10)
+\end{fortrancodeenv}
+
+To make sure we don't have any junk values in the arrays, we initialise these with random values between 1 and 0.
+
+\begin{fortrancodeenv}
+call init_rand()
+call set_print_format(10, 4, 'F')
+
+call rand_mat(A, 0.0_dp, 1.0_dp)
+call rand_vec(v, 0.0_dp, 1.0_dp)
+\end{fortrancodeenv}
+
+We print the arrays, so that we can see the structure:
+
+\begin{fortrancodeenv}
+call print_matrix(A, 'a')
+print*, loc(A)
+
+call print_vector(v, 'c')
+print*, loc(v)
+\end{fortrancodeenv}
+
+The print-statements are added to show the actual memory address, so we can see what happens when we create subobjects.
+
+\begin{fortrancodeenv}
+Matrix a ( 10 x  10) DP
+---------------------------------------------------------------------- ...
+    0.7112    0.6538    0.9200    0.7415    0.7460    0.4596    0.9778 ... 0.4111    0.0399    0.7354    0.9505    0.4428    0.7871    0.7390 ...
+    0.9814    0.4057    0.4292    0.3406    0.6673    0.2120    0.9523 ...
+    0.1369    0.5396    0.4405    0.7577    0.9942    0.7274    0.2653 ...
+    0.7179    0.9883    0.5549    0.6374    0.1337    0.9464    0.7786 ...
+    0.2915    0.8634    0.3962    0.8088    0.5708    0.9827    0.8841 ...
+    0.8294    0.8191    0.5452    0.2079    0.1126    0.8199    0.2020 ...
+    0.0706    0.6945    0.7744    0.3474    0.2566    0.6155    0.0921 ...
+    0.3754    0.7855    0.9828    0.3965    0.9551    0.2119    0.2718 ...
+    0.4026    0.5287    0.6198    0.9967    0.5866    0.6598    0.4024 ...
+---------------------------------------------------------------------- ...
+      140722079206560
+
+Vector c ( 10) DP
+---------------------------------------------------------------------- ...
+    0.9092    0.4976    0.6361    0.0355    0.7865    0.2197    0.8824 ...
+---------------------------------------------------------------------- ...
+      140722079206480
+\end{fortrancodeenv}
+
+In the first example we are extracing the first column of the \fvar{A} array:
+
+\begin{fortrancodeenv}
+call print_vector(A(:,1))
+print*, loc(A(:,1))
+\end{fortrancodeenv}
+
+This will give us the following output:
+
+\begin{fortrancodeenv}
+Vector ( 10)
+---------------------------------------------------------------------- ...
+    0.7112    0.4111    0.9814    0.1369    0.7179    0.2915    0.8294 ...
+---------------------------------------------------------------------- ...
+      140722079206560
+\end{fortrancodeenv}
+
+From the output we can see that i seems to be the first column of the \fvar{A} array. We can also see that the memory location of the subobject is equivalent to the memory location of the \fvar{A}-array. This is due to the fact that memory for the \fvar{A}-array is stored column wise access a slice in this direction can be done directly without copying.
+
+If we instead extract the first row of the \fvar{A}-array:
+
+\begin{fortrancodeenv}
+call print_vector(A(1,:))
+print*, loc(A(1,:))
+\end{fortrancodeenv}
+
+We get the following output:
+
+\begin{fortrancodeenv}
+Vector ( 10)
+---------------------------------------------------------------------- ...
+    0.7112    0.6538    0.9200    0.7415    0.7460    0.4596    0.9778 ...
+---------------------------------------------------------------------- ...
+             10278912
+\end{fortrancodeenv}
+
+Here we can see that the memory location is in a completely different location. This is due to the fact that the compiler needs to make a temporary copy to create this slice. This is important to think about especially if working with large array slices that are passed in subroutine calls. This can lead to crashes as these slices often are allocated on the stack.
+
+Below illustrates some other examples of using array sub objects:
+
+\begin{fortrancodeenv}
+call print_matrix(A(1:2,1:2))
+print*, loc(A(1:2,1:2))
+
+call print_matrix(A(1:6:2,1:6:2))
+print*, loc(A(1:6:2,1:6:2))
+
+call print_matrix(A(:,1:2))
+print*, loc(A(:,1:2))
+\end{fortrancodeenv}
+
+This gives the following output:
+
+\begin{fortrancodeenv}
+Matrix (  2 x   2) DP
+--------------------
+    0.1233    0.2606
+    0.8357    0.4479
+--------------------
+             27678720
+
+Matrix (  3 x   3) DP
+------------------------------
+    0.1233    0.7812    0.1668
+    0.4284    0.3687    0.6542
+    0.2531    0.3314    0.3557
+------------------------------
+             27689200
+
+Matrix ( 10 x   2) DP
+--------------------
+    0.1233    0.2606
+    0.8357    0.4479
+    0.4284    0.2254
+    0.3541    0.3400
+    0.2531    0.6490
+    0.6420    0.5396
+    0.5006    0.5849
+    0.7185    0.3138
+    0.8209    0.6203
+    0.0232    0.9131
+--------------------
+      140728814257696
+\end{fortrancodeenv}
+
 %---------------------------------------------------------------------
 \section{Conditional statements}
 %---------------------------------------------------------------------
+
+One of the more important concepts in a programming language is the ability to execute code depending on certain conditions are fulfilled. Modern Fortran support this through the \fkeyw{if}- and the \fkeyw{select}-statement, which are described in this section.
 
 The simplest form of if-statements in Fortran have the following syntax
 
