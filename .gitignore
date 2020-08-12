@@ -42,3 +42,5 @@ source/submodules/points.smod
 *.bak
 *.fdb_latexmk
 *.fls
+source/bouncing_particles/build/
+*.pyd
