@@ -4,9 +4,13 @@ implicit none
 
 integer, parameter :: rk = selected_real_kind(15,300)
 
+interface printMatrix
+    module procedure r_printMatrix, i_printMatrix
+end interface
+
 contains
 
-subroutine printMatrix(A, name)
+subroutine r_printMatrix(A, name)
 
     real(rk), intent(in) :: A(:,:)
     character(*), intent(in), optional :: name
@@ -50,7 +54,53 @@ subroutine printMatrix(A, name)
 
     write(*,'(TL1,A)') '-------------------------------------'
 
-end subroutine printMatrix
+end subroutine r_printMatrix
+
+subroutine i_printMatrix(A, name)
+
+    integer, intent(in) :: A(:,:)
+    character(*), intent(in), optional :: name
+    integer :: rows, cols, slen
+    integer :: i, j
+    character(255) :: fmt
+    character(255) :: sfmt
+
+    rows = size(A,1)
+    cols = size(A,2)
+    slen = len_trim(name)
+
+    if (slen<10) then
+        write(sfmt, '(A,I1,A)') '(TL1,A,A',slen,',A,I3,A,I3,A)'
+    else if (slen<100) then
+        write(sfmt, '(A,I2,A)') '(TL1,A,A',slen,',A,I3,A,I3,A)'
+    else
+        write(sfmt, '(A,I3,A)') '(TL1,A,A',slen,',A,I3,A,I3,A)'
+    end if
+
+    if (cols<10) then
+        write(fmt, '(A,I1,A)') '(', cols, 'I10)'
+    else if (cols<100) then
+        write(fmt, '(A,I2,A)') '(', cols, 'I10)'
+    else
+        write(fmt, '(A,I3,A)') '(', cols, 'I10)'
+    end if
+
+    write(*,'(TL1,A)') '-------------------------------------'
+    if (present(name)) then
+        write(*,sfmt) 'Matrix ',trim(name),' (',rows, ' x ', cols, ')'
+    else
+        write(*,'(TL1,A,I3,A,I3,A)') 'Matrix (',rows, ' x ', cols, ')'
+    end if
+    write(*,'(TL1,A)') '-------------------------------------'
+
+
+    do i=1,rows
+        write(*,fmt) (A(i,j), j=1,cols)
+    end do
+
+    write(*,'(TL1,A)') '-------------------------------------'
+
+end subroutine i_printMatrix
 
 subroutine printVector(A, name)
 

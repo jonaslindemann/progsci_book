@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 enable_language(Fortran)
 
 set(USE_F2PY OFF)
-set(USE_LAPACK ON)
+set(USE_LAPACK OFF)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "6.0.0")
