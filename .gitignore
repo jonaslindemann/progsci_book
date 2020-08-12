@@ -44,3 +44,5 @@ source/submodules/points.smod
 *.fls
 source/bouncing_particles/build/
 *.pyd
+sciprog.pyg
+*.synctex(busy)
